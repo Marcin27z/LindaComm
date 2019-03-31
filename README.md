@@ -16,7 +16,7 @@ Technologie, które wykorzystujemy/będziemy wykorzystywać:
 
 ## Autorzy
 - **Rzepka Karol** - [krzepka](https://github.com/krzepka)
-- **Tkaczyk Artur** - [](https://github.com/...)
+- **Tkaczyk Artur** - [atkaczy1](https://github.com/atkaczy1)
 - **Zawadka Piotr** - [WorkingFen](https://github.com/WorkingFen)
 - **Żyżyński Marcin** - [Marcin27z](https://github.com/Marcin27z)
 

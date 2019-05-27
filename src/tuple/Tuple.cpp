@@ -16,3 +16,8 @@ TupleElement &Tuple::operator[](int position) {
 bool Tuple::matchPattern(std::string) {
     return false;
 }
+
+std::string Tuple::getType() {
+    return type;
+}
+

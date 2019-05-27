@@ -15,6 +15,7 @@ public:
 
 private:
     std::vector<TupleElement> elements;
+    std::string type;
 
     template<typename T>
     void addElement(T v);
@@ -32,6 +33,8 @@ public:
     TupleElement &operator[](int);
 
     bool matchPattern(std::string);
+
+    std::string getType();
 };
 
 template<typename... Args>
@@ -46,18 +49,21 @@ void Tuple::addElement(T v) {
 
 template<>
 inline void Tuple::addElement<int>(int v) {
+    type.append("i");
     TupleElement tupleElement(INT, v);
     elements.push_back(tupleElement);
 }
 
 template<>
 inline void Tuple::addElement<float>(float v) {
+    type.append("f");
     TupleElement tupleElement(FLOAT, v);
     elements.push_back(tupleElement);
 }
 
 template<>
 inline void Tuple::addElement<const char *>(const char *v) {
+    type.append("s");
     TupleElement tupleElement(STRING, v);
     elements.push_back(tupleElement);
 }
@@ -67,7 +73,6 @@ void Tuple::addElement(T first, Args... args) {
     addElement(first);
     addElement(args...);
 }
-
 
 
 #endif //UXP1A_TUPLE_H

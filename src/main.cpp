@@ -13,6 +13,7 @@ void example(Args... args) {
             std::cout << tuple[i].getFloatValue() << std::endl;
         }
     }
+    std::cout << tuple.getType() << std::endl;
 }
 
 int main() {

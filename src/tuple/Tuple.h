@@ -1,0 +1,73 @@
+//
+// Created by Marcin on 27.05.2019.
+//
+
+#ifndef UXP1A_TUPLE_H
+#define UXP1A_TUPLE_H
+
+#include <vector>
+#include <cstdio>
+#include <string>
+#include "TupleElement.h"
+
+class Tuple {
+public:
+
+private:
+    std::vector<TupleElement> elements;
+
+    template<typename T>
+    void addElement(T v);
+
+    template<typename T, typename... Args>
+    void addElement(T first, Args... args);
+
+public:
+
+    template<typename... Args>
+    explicit Tuple(Args... args);
+
+    size_t getSize();
+
+    TupleElement &operator[](int);
+
+    bool matchPattern(std::string);
+};
+
+template<typename... Args>
+Tuple::Tuple(Args... args) {
+    addElement(args...);
+}
+
+template<typename T>
+void Tuple::addElement(T v) {
+
+}
+
+template<>
+inline void Tuple::addElement<int>(int v) {
+    TupleElement tupleElement(INT, v);
+    elements.push_back(tupleElement);
+}
+
+template<>
+inline void Tuple::addElement<float>(float v) {
+    TupleElement tupleElement(FLOAT, v);
+    elements.push_back(tupleElement);
+}
+
+template<>
+inline void Tuple::addElement<const char *>(const char *v) {
+    TupleElement tupleElement(STRING, v);
+    elements.push_back(tupleElement);
+}
+
+template<typename T, typename... Args>
+void Tuple::addElement(T first, Args... args) {
+    addElement(first);
+    addElement(args...);
+}
+
+
+
+#endif //UXP1A_TUPLE_H

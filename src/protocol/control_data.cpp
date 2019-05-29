@@ -7,9 +7,11 @@
 using namespace protocol;
 
 const std::map<int, control_data::Type> control_data::types = {
-        {0, control_data::Type::output_linda},
-        {1, control_data::Type::input_linda},
-        {2, control_data::Type::read_linda}
+        {0, control_data::Type::request_tuple},
+        {1, control_data::Type::own_tuple},
+        {2, control_data::Type::accept_tuple},
+        {3, control_data::Type::give_tuple},
+        {4, control_data::Type::request_conn}
 };
 
 control_data::Type control_data::get_type(int t) const {
@@ -78,12 +80,22 @@ int control_data::send_msg(int dst) {
         return -1;
     }
 
+    if(write(dst, &id_sender, sizeof(id_sender)) < 0) {
+        std::cerr << "Unsuccessful wrtie (sender id)" << std::endl;
+        return -1;
+    }
+
+    if(write(dst, &id_recipient, sizeof(id_recipient)) < 0) {
+        std::cerr << "Unsuccessful wrtie (recipient id)" << std::endl;
+        return -1;
+    }
+
     if(write(dst, &buffer[0], buf_length) < 0) {
         std::cerr << "Unsuccessful write (body)" << std::endl;
         return -1;
     }
 
-    return buf_length + 2*sizeof(int);
+    return buf_length + 4*sizeof(int);
 }
 
 uint manager::pop_int(int socket) {
@@ -96,15 +108,15 @@ uint manager::pop_int(int socket) {
 }
 
 bool manager::is_cd_ready(int socket) {
-    return buffers[socket].size() >= 2*sizeof(int);
+    return buffers[socket].size() >= 4*sizeof(int);
 }
 
 size_t manager::expected_cd_size(int socket) {
-    if(!is_cd_ready(socket)) return 2* sizeof(int);
+    if(!is_cd_ready(socket)) return 4* sizeof(int);
 
     int length;
     std::memcpy(&length, &buffers[socket][0], sizeof(int));
-    return 2*sizeof(int) + length;
+    return 4*sizeof(int) + length;
 }
 
 size_t manager::remaining_cd_size(int socket) {
@@ -113,9 +125,9 @@ size_t manager::remaining_cd_size(int socket) {
 
 bool manager::assemble(int socket) {
     if(!is_cd_ready(socket)) {
-        std::vector<char> buffer(2*sizeof(int) - buffers[socket].size());
+        std::vector<char> buffer(4*sizeof(int) - buffers[socket].size());
 
-        read_result = read(socket, &buffer[0], 2*sizeof(int) - buffers[socket].size());
+        read_result = read(socket, &buffer[0], 4*sizeof(int) - buffers[socket].size());
         if(read_result == -1) return false;
         buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.begin() + read_result);
 

@@ -19,9 +19,11 @@
 namespace protocol {
     struct control_data {
         enum class Type : int {
-            output_linda,
-            input_linda,
-            read_linda,
+            request_tuple,
+            own_tuple,
+            accept_tuple,
+            give_tuple,
+            request_conn,
 
             unknown
         };
@@ -30,23 +32,28 @@ namespace protocol {
 
         int type = -1;
         uint buf_length = 0;
+        uint id_sender;
+        int id_recipient;
         std::vector<char> buffer;
 
         Type get_type(int) const;
 
-        int send_msg(int);             // But how? Int?
-
+        // Functions used to read values from message
         int read_int();
         float read_float();
         std::string read_string(int);
 
+        // Functions used to write values to message
         void write_int(int);
         void write_float(float);
         void write_string(std::string);
 
-        control_data() {};
+        int send_msg(int);
+
+        control_data() = default;
         control_data(int t): type(t) {}
-        control_data(int t, char* b, int bl): type(t), buf_length(bl) {
+        control_data(int t, char* b, uint bl, uint id_s, int id_r = -1):
+        type(t), buf_length(bl), id_sender(id_s), id_recipient(id_r) {
             buffer = std::vector<char>(b, b+bl);
         }
     };
@@ -58,10 +65,10 @@ namespace protocol {
 
             ssize_t read_result;
 
-            bool is_cd_ready(int);      // Int?
+            bool is_cd_ready(int);
 
-            size_t expected_cd_size(int);       // Int?
-            size_t remaining_cd_size(int);      // Int?
+            size_t expected_cd_size(int);
+            size_t remaining_cd_size(int);
 
             uint pop_int(int);   // Int?
 

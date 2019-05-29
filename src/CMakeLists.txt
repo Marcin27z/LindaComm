@@ -3,4 +3,4 @@ project(uxp1a)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(uxp1a main.cpp tuple/Tuple.cpp tuple/Tuple.h tuple/TupleElementType.h tuple/TupleElement.cpp tuple/TupleElement.h protocol/control_data.cpp protocol/control_data.h)
+add_executable(uxp1a main.cpp tuple/Tuple.cpp tuple/Tuple.h tuple/TupleElementType.h tuple/TupleElement.cpp tuple/TupleElement.h protocol/control_data.cpp protocol/control_data.h linda/linda.h)

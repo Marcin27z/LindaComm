@@ -11,7 +11,8 @@ const std::map<int, control_data::Type> control_data::types = {
         {1, control_data::Type::own_tuple},
         {2, control_data::Type::accept_tuple},
         {3, control_data::Type::give_tuple},
-        {4, control_data::Type::request_conn}
+        {4, control_data::Type::request_conn},
+        {5, control_data::Type::main_fifo_structure}
 };
 
 control_data::Type control_data::get_type(int t) const {

@@ -24,6 +24,7 @@ namespace protocol {
             accept_tuple,
             give_tuple,
             request_conn,
+            main_fifo_structure,
 
             unknown
         };
@@ -51,7 +52,8 @@ namespace protocol {
         int send_msg(int);
 
         control_data() = default;
-        control_data(int t): type(t) {}
+        explicit control_data(int t): type(t), id_sender(0), id_recipient(0) {}
+
         control_data(int t, char* b, uint bl, uint id_s, int id_r = -1):
         type(t), buf_length(bl), id_sender(id_s), id_recipient(id_r) {
             buffer = std::vector<char>(b, b+bl);

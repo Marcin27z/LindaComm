@@ -1,5 +1,7 @@
 #include <iostream>
+#include <unistd.h>
 #include "tuple/Tuple.h"
+#include "architecture/Proces.h"
 
 template<typename... Args>
 void example(Args... args) {
@@ -16,7 +18,15 @@ void example(Args... args) {
     std::cout << tuple.getType() << std::endl;
 }
 
+void example_ring(){
+    std::string nameFIFO = "/home/karol/mainFIFO";
+    unlink(nameFIFO.c_str());  // Add before mknod()
+    Proces proces(getpid(), nameFIFO);
+    proces.connect();
+}
+
 int main() {
-    example("hello", 3, 2, 15.0f, "world");
+    //example("hello", 3, 2, 15.0f, "world");
+    example_ring();
     return 0;
 }

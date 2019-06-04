@@ -71,7 +71,7 @@ namespace protocol {
             size_t expected_cd_size(int);
             size_t remaining_cd_size(int);
 
-            uint pop_int(int);   // Int?
+            uint pop_int(int);
 
         public:
             int last_result() const;

@@ -18,7 +18,7 @@ const std::map<int, control_data::Type> control_data::types = {
 control_data::Type control_data::get_type(int t) const {
     auto type = types.find(t);
     if(type == types.end()) return control_data::Type::unknown;
-    else return type->second;
+    return type->second;
 }
 
 int control_data::read_int() {
@@ -115,7 +115,7 @@ bool manager::is_cd_ready(int socket) {
 }
 
 size_t manager::expected_cd_size(int socket) {
-    if(!is_cd_ready(socket)) return 4* sizeof(int);
+    if(!is_cd_ready(socket)) return 4*sizeof(int);
 
     int length;
     std::memcpy(&length, &buffers[socket][0], sizeof(int));
@@ -146,13 +146,15 @@ bool manager::assemble(int socket) {
 
     read_result = read(socket, &buffer[0], remaining_cd_size(socket));
     if(read_result == -1) return false;
-    buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.end());
+    buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.begin() + read_result);
 
     if(remaining_cd_size(socket) > 0) return false;
 
     control_data msg;
     msg.buf_length = pop_int(socket);
     msg.type = pop_int(socket);
+    msg.id_sender = pop_int(socket);
+    msg.id_recipient = pop_int(socket);
     msg.buffer = std::vector<char>(buffers[socket].begin(), buffers[socket].begin() + msg.buf_length);
 
     buffers[socket].clear();

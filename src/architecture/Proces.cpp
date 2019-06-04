@@ -103,9 +103,6 @@ std::vector<int> Proces::readMainPipe(int mainFd) {
     {
         protocol::control_data structure_out = manager.read_data(mainFd);
 
-        int id1 = structure_out.read_int();
-        int id2 = structure_out.read_int();
-
         int numberOfProcesses = structure_out.read_int();
 
         std::cout<<"Procesy:"<<std::endl;

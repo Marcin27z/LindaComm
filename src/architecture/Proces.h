@@ -16,21 +16,23 @@ class Proces {
     int readFd;
     int writeFd;
     int mainFd;
+    int pipeSize;
     std::vector<std::string> requests;
     std::string mainPipePath;
+    int mainPipeSize;
     protocol::manager manager;
 
     void addRequest(const std::string &request);
 
 
 public:
-    explicit Proces(int id, std::string mainPipePath);
+    explicit Proces(int id, std::string mainPipePath, int mainPipeSize_ = 0, int pipeSize_ = 0);
     ~Proces();
 
     void connect();
     void connectToMainPipe();
     void createMainPipe();
-    void createPipe(int processID);
+    void createPipe(int processID, int size);
 
 };
 

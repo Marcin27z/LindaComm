@@ -12,8 +12,9 @@
 #include <cstring>
 #include "Proces.h"
 
-Proces::Proces(int id_, std::string mainPipePath_):id(id_), readFd(0), writeFd(0), mainFd(0),
-                                                    mainPipePath(std::move(mainPipePath_))
+Proces::Proces(int id_, std::string mainPipePath_, int mainPipeSize_, int pipeSize_):id(id_), readFd(0), writeFd(0), mainFd(0),
+                                                    mainPipePath(std::move(mainPipePath_)),
+                                                    mainPipeSize(mainPipeSize_), pipeSize(pipeSize_)
 {
 
 }
@@ -22,11 +23,13 @@ void Proces::addRequest(const std::string &request) {
     requests.push_back(request);
 }
 
-void Proces::createPipe(int processID)
+void Proces::createPipe(int processID, int size)
 {
     std::string pipePath = "./pipe" + std::to_string(processID);
-    mkfifo(pipePath.c_str(), S_IFIFO);          // create fifo
-    readFd = open(pipePath.c_str(), O_RDONLY);    // get fifo's read fd
+    mkfifo(pipePath.c_str(), PERM);          // create fifo
+    readFd = open(pipePath.c_str(), O_RDWR);    // get fifo's read fd
+//    fcntl(readFd, F_SETPIPE_SZ, size);
+
 }
 
 void Proces::connectToMainPipe() {
@@ -44,7 +47,7 @@ void Proces::connectToMainPipe() {
 void Proces::createMainPipe()
 {
     // utwórz główną kolejkę
-    if(mknod(mainPipePath.c_str(), S_IFIFO | PERM, 0) < 0) // NOLINT(hicpp-signed-bitwise)
+    if(mknod(mainPipePath.c_str(), PERM, 0) < 0) // NOLINT(hicpp-signed-bitwise)
     {
         char cwd[200];
         getcwd(cwd, sizeof(cwd));
@@ -56,6 +59,8 @@ void Proces::createMainPipe()
         getcwd(cwd, sizeof(cwd));
         throw ProcesException("opening main fifo failed: " + std::string(cwd) +mainPipePath + ", " + strerror(errno));
     }
+    if(mainPipeSize) fcntl(mainFd, F_SETPIPE_SZ, mainPipeSize); // jeśli 0, nie zmieniaj rozmiaru
+
 }
 
 void Proces::connect() {
@@ -82,14 +87,19 @@ void Proces::connect() {
     structure.write_int(9);
     structure.write_int(1337);
 
-    structure.send_msg(mainFd);
+//    int xD = open("/home/karol/TEST", O_RDWR);
+    //std::cout<<"XD="<<strerror(errno)<<std::endl;
+//    structure.send_msg(xD);
 
+    structure.send_msg(mainFd);
     if(manager.assemble(mainFd))
     {
         protocol::control_data structure_out = manager.read_data(mainFd);
 
         if(structure_out.type != 5) throw ProcesException("incorrect protocol type in main fifo: " +
                                                           std::to_string(structure_out.type)) ;
+        int id1 = structure_out.read_int();
+        int id2 = structure_out.read_int();
 
         int numberOfProcesses = structure_out.read_int();
 
@@ -97,7 +107,7 @@ void Proces::connect() {
         for(int i = 0; i < numberOfProcesses; ++ i)
         {
             int returned = structure_out.read_int();
-            std::cout<<structure_out.read_int();
+            std::cout<<returned<<std::endl;
         }
         std::cout<<"Koniec!"<<std::endl;
     }

@@ -12,11 +12,12 @@
 #define PERM 0777
 
 class Proces {
-    int id;
+    int processId;
     int readFd;
     int writeFd;
-    int mainFd;
-    int pipeSize;
+    int pipeSize{};
+    std::string directory;
+    std::string pipePath{};
     std::vector<std::string> requests;
     std::string mainPipePath;
     int mainPipeSize;
@@ -26,14 +27,17 @@ class Proces {
 
 
 public:
-    explicit Proces(int id, std::string mainPipePath, int mainPipeSize_ = 0, int pipeSize_ = 0);
+    explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
     ~Proces();
 
     void connect();
+    void disconnect();
     void connectToMainPipe();
-    void createMainPipe();
-    void createPipe(int processID, int size);
+    int createMainPipe();
+    void createPipe(int size = 0);
+    std::vector<int> readMainPipe(int mainFd);
 
+    static void writeMainPipe(int mainFd, const std::vector<int> &new_structure);
 };
 
 class ProcesException : public std::exception

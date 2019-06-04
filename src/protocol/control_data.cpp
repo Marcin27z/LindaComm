@@ -2,6 +2,7 @@
 // Created by Fen on 29.05.2019.
 //
 
+#include <fcntl.h>
 #include "control_data.h"
 
 using namespace protocol;
@@ -11,8 +12,7 @@ const std::map<int, control_data::Type> control_data::types = {
         {1, control_data::Type::own_tuple},
         {2, control_data::Type::accept_tuple},
         {3, control_data::Type::give_tuple},
-        {4, control_data::Type::request_conn},
-        {5, control_data::Type::main_fifo_structure}
+        {4, control_data::Type::request_conn}
 };
 
 control_data::Type control_data::get_type(int t) const {
@@ -109,6 +109,8 @@ uint manager::pop_int(int socket) {
 }
 
 bool manager::is_cd_ready(int socket) {
+    int x = buffers[socket].size();
+    int y =  4*sizeof(int);
     return buffers[socket].size() >= 4*sizeof(int);
 }
 
@@ -127,8 +129,13 @@ size_t manager::remaining_cd_size(int socket) {
 bool manager::assemble(int socket) {
     if(!is_cd_ready(socket)) {
         std::vector<char> buffer(4*sizeof(int) - buffers[socket].size());
+        int mainReadFd;
+        std::string mainPipePath = "/home/karol/mainFIFO";
+        if((mainReadFd = open(mainPipePath.c_str(), O_RDONLY)) < 0)
+        {
 
-        read_result = read(socket, &buffer[0], 4*sizeof(int) - buffers[socket].size());
+        }
+        read_result = read(mainReadFd, &buffer[0], 4*sizeof(int) - buffers[socket].size());
         if(read_result == -1) return false;
         buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.begin() + read_result);
 

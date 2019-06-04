@@ -24,7 +24,6 @@ namespace protocol {
             accept_tuple,
             give_tuple,
             request_conn,
-            main_fifo_structure,
 
             unknown
         };

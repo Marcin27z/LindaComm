@@ -39,6 +39,9 @@ void example_ring(){
 int main() {
     linda::init_linda();
     linda::output_linda(Tuple(1, 2, 3));
+    std::cout << "trying to get tuple" << std::endl;
+    Tuple tuple = linda::input_linda("", 5);
+    std::cout << "finished" << std::endl;
     linda::terminate_linda();
     return 0;
 }

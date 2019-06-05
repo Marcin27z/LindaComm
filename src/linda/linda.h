@@ -7,6 +7,7 @@
 
 #include "../protocol/control_data.h"
 #include "../tuple/Tuple.h"
+#include "../architecture/Proces.h"
 
 
 namespace linda {

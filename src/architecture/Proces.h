@@ -32,8 +32,13 @@ class Proces: public Thread {
     //std::vector<std::string> requests; // TODO: przechowywanie requestów
     std::map<int, std::pair<std::string, int>> requests;
 
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    bool isTupleReady = false;
+    bool isWantingTuple = false;
+
     SynchronizedQueue<Tuple> outTuplesQueue;
-    SynchronizedQueue<Tuple> inTuplesQueue;
+    Tuple tuple = Tuple(0);
 
 
 
@@ -58,6 +63,7 @@ class Proces: public Thread {
 
     // metoda do otwierania do zapisu kolejek procesów
     int openWrite(int id);
+    void tupleReady(Tuple tuple);
 
 public:
     explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
@@ -78,8 +84,9 @@ public:
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
     void put(Tuple);
+
     void addRequest(const std::string& request, int idSender, int serialNumber);
-    Tuple getTuple();
+    Tuple getTuple(int timeout);
 };
 
 class ProcesException : public std::exception

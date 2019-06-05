@@ -68,9 +68,9 @@ void Proces::connectToMainPipe() {
             // utwórz własną kolejkę
             createPipe();
 
-            sendRequestConn(processId - 1, processId); // ostatni ma  id o 1 mniejsze od obecnego procesu
+            sendRequestConn(*new_structure.begin(), processId);
 
-            nextPipePath = directory + "pipe_" + std::to_string(processId - 1);
+            nextPipePath = directory + "pipe_" + std::to_string(*(new_structure.end() - 2));
             nextId = processId - 1;
         }
     }
@@ -248,7 +248,7 @@ void Proces::handleRequestTuple(protocol::control_data& request) {
 
     int tuplePatternSize = request.read_int();
     std::string tuplePattern = request.read_string(tuplePatternSize);
-
+    std::cout << tuplePattern << std::endl;
     auto trove = findTuple(tuplePattern);
     if(trove.first)
         sendOwnTuple(request.id_sender, serialNumber);
@@ -372,6 +372,7 @@ void Proces::sendRequestTuple(int destId, const std::string& tuplePattern) {
     request.id_recipient = destId;
 
     int serialNumber = rand();
+    request.write_int(serialNumber);
     request.write_int(tuplePattern.size());
     request.write_string(tuplePattern);
 
@@ -409,7 +410,7 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
 }
 
 void Proces::forwardMessage(protocol::control_data& request) {
-    request.send_msg(nextId);
+    request.send_msg(writeFd);
 }
 
 int Proces::findRequest(int serialNumber) {

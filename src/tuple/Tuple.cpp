@@ -23,7 +23,7 @@ bool Tuple::matchPattern(std::string pattern) {
 //        last = next + 1;
 //    }
 //    std::cout << pattern.substr(last) << std::endl;
-    return bool(rand() % 2);
+    return true;
 }
 
 std::string Tuple::getType() {
@@ -41,5 +41,9 @@ void Tuple::print() {
         }
     }
     std::cout << std::endl;
+}
+
+Tuple::Tuple() {
+
 }
 

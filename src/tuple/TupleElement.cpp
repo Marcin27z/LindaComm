@@ -2,11 +2,13 @@
 // Created by Marcin on 27.05.2019.
 //
 
+#include <cstring>
 #include "TupleElement.h"
 
 TupleElement::TupleElement(TupleElementType type, const char *value) {
     this->type = type;
-    this->value.stringValue = value;
+    this->value.stringValue = new char[strlen(value)];
+    memcpy(this->value.stringValue, value, strlen(value));
 }
 
 TupleElement::TupleElement(TupleElementType type, int value) {

@@ -12,7 +12,7 @@ class TupleElement {
 private:
     TupleElementType type;
     union Value {
-        const char* stringValue;
+        char* stringValue;
         int intValue;
         float floatValue;
     } value;

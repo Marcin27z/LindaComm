@@ -17,13 +17,15 @@ private:
     std::vector<TupleElement> elements;
     std::string type;
 
-    template<typename T>
-    void addElement(T v);
+public:
 
     template<typename T, typename... Args>
     void addElement(T first, Args... args);
 
-public:
+    template<typename T>
+    void addElement(T v);
+
+    Tuple();
 
     template<typename... Args>
     explicit Tuple(Args... args);

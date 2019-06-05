@@ -37,7 +37,7 @@ class Proces: public Thread {
     bool isTupleReady = false;
     bool isWantingTuple = false;
 
-    SynchronizedQueue<Tuple> outTuplesQueue;
+    std::vector<Tuple> outTuples;
     Tuple tuple = Tuple(0);
 
 

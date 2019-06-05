@@ -26,7 +26,7 @@ namespace linda {
 
     Tuple input_linda(std::string pattern, int timeout) {
         sleep(1);
-        proces.sendRequestTuple(-1, "pattern");
+        proces.sendRequestTuple(-1, pattern);
         return proces.getTuple(timeout);
     }
 

@@ -35,6 +35,8 @@ public:
     bool matchPattern(std::string);
 
     std::string getType();
+
+    void print();
 };
 
 template<typename... Args>

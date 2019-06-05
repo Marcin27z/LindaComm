@@ -301,7 +301,7 @@ int Proces::openWrite(int id)
 }
 
 void Proces::put(Tuple tuple) {
-    outTuplesQueue.put(tuple);
+    outTuples.push_back(tuple);
 }
 
 Tuple Proces::getTuple(int timeout) {
@@ -348,6 +348,11 @@ std::pair<bool,Tuple> Proces::findTuple(const std::string& tuplePattern) {
             return tuple;
         }
     }*/
+    for (auto && tuple: outTuples) {
+        if (tuple.matchPattern(tuplePattern)) {
+            return std::pair<bool, Tuple>({false, tuple});
+        }
+    }
     return std::pair<bool,Tuple>({false, Tuple(nullptr)});
 }
 

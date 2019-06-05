@@ -99,72 +99,129 @@ int control_data::send_msg(int dst) {
     return buf_length + 4*sizeof(int);
 }
 
-uint manager::pop_int(int socket) {
-    uint result;
-    std::memcpy(&result, &buffers[socket][0], sizeof(int));
+int control_data::send_fifo_msg(int dst) {
+    if(write(dst, &buf_length, sizeof(buf_length)) < 0) {
+        std::cerr << "Unsuccessful write (body length)" << std::endl;
+        return -1;
+    }
 
-    buffers[socket].erase(buffers[socket].begin(), buffers[socket].begin() + sizeof(int));
+    if(write(dst, &buffer[0], buf_length) < 0) {
+        std::cerr << "Unsuccessful write (body)" << std::endl;
+        return -1;
+    }
+
+    return buf_length + sizeof(int);
+}
+
+uint manager::pop_int(int fd) {
+    uint result;
+    std::memcpy(&result, &buffers[fd][0], sizeof(int));
+
+    buffers[fd].erase(buffers[fd].begin(), buffers[fd].begin() + sizeof(int));
 
     return result;
 }
 
-bool manager::is_cd_ready(int socket) {
-    int x = buffers[socket].size();
-    int y =  4*sizeof(int);
-    return buffers[socket].size() >= 4*sizeof(int);
+bool manager::is_cd_ready(int fd) {
+    return buffers[fd].size() >= 4*sizeof(int);
 }
 
-size_t manager::expected_cd_size(int socket) {
-    if(!is_cd_ready(socket)) return 4*sizeof(int);
+size_t manager::expected_cd_size(int fd) {
+    if(!is_cd_ready(fd)) return 4*sizeof(int);
 
     int length;
-    std::memcpy(&length, &buffers[socket][0], sizeof(int));
+    std::memcpy(&length, &buffers[fd][0], sizeof(int));
     return 4*sizeof(int) + length;
 }
 
-size_t manager::remaining_cd_size(int socket) {
-    return expected_cd_size(socket) - buffers[socket].size();
+size_t manager::remaining_cd_size(int fd) {
+    return expected_cd_size(fd) - buffers[fd].size();
 }
 
-bool manager::assemble(int socket) {
-    if(!is_cd_ready(socket)) {
-        std::vector<char> buffer(4*sizeof(int) - buffers[socket].size());
+bool manager::assemble(int fd) {
+    if(!is_cd_ready(fd)) {
+        std::vector<char> buffer(4*sizeof(int) - buffers[fd].size());
         //int mainReadFd;
         //std::string mainPipePath = "/home/karol/mainFIFO";
 
 //        if(( mainReadFd= open(mainPipePath.c_str(), O_RDWR)) < 0){}
 
-        read_result = read(socket, &buffer[0], 4*sizeof(int) - buffers[socket].size());
+        read_result = read(fd, &buffer[0], 4*sizeof(int) - buffers[fd].size());
         if(read_result == -1) return false;
-        buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.begin() + read_result);
+        buffers[fd].insert(buffers[fd].end(), buffer.begin(), buffer.begin() + read_result);
 
-        if(!is_cd_ready(socket)) return false;
+        if(!is_cd_ready(fd)) return false;
     }
 
-    std::vector<char> buffer(remaining_cd_size(socket));
+    std::vector<char> buffer(remaining_cd_size(fd));
 
-    read_result = read(socket, &buffer[0], remaining_cd_size(socket));
+    read_result = read(fd, &buffer[0], remaining_cd_size(fd));
     if(read_result == -1) return false;
-    buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.begin() + read_result);
+    buffers[fd].insert(buffers[fd].end(), buffer.begin(), buffer.begin() + read_result);
 
-    if(remaining_cd_size(socket) > 0) return false;
+    if(remaining_cd_size(fd) > 0) return false;
 
     control_data msg;
-    msg.buf_length = pop_int(socket);
-    msg.type = pop_int(socket);
-    msg.id_sender = pop_int(socket);
-    msg.id_recipient = pop_int(socket);
-    msg.buffer = std::vector<char>(buffers[socket].begin(), buffers[socket].begin() + msg.buf_length);
+    msg.buf_length = pop_int(fd);
+    msg.type = pop_int(fd);
+    msg.id_sender = pop_int(fd);
+    msg.id_recipient = pop_int(fd);
+    msg.buffer = std::vector<char>(buffers[fd].begin(), buffers[fd].begin() + msg.buf_length);
 
-    buffers[socket].clear();
+    buffers[fd].clear();
 
-    msg_buffer.insert({socket, msg});
+    msg_buffer.insert({fd, msg});
 
     return true;
 }
 
-control_data manager::read_data(int socket) {
-    control_data msg = msg_buffer[socket];
-    msg_buffer.erase(socket);
+bool manager::is_fifo_msg_ready(int fd) {
+    return buffers[fd].size() >= sizeof(int);
+}
+
+size_t manager::expected_fifo_msg_size(int fd) {
+    if(!is_fifo_msg_ready(fd)) return sizeof(int);
+
+    int length;
+    std::memcpy(&length, &buffers[fd][0], sizeof(int));
+    return sizeof(int) + length;
+}
+
+size_t manager::remaining_fifo_msg_size(int fd) {
+    return expected_fifo_msg_size(fd) - buffers[fd].size();
+}
+
+bool manager::assemble_fifo_msg(int fd) {
+    if(!is_fifo_msg_ready(fd)) {
+        std::vector<char> buffer(sizeof(int) - buffers[fd].size());
+        read_result = read(fd, &buffer[0], sizeof(int) - buffers[fd].size());
+        if(read_result == -1) return false;
+        buffers[fd].insert(buffers[fd].end(), buffer.begin(), buffer.begin() + read_result);
+
+        if(!is_fifo_msg_ready(fd)) return false;
+    }
+
+    std::vector<char> buffer(remaining_fifo_msg_size(fd));
+
+    read_result = read(fd, &buffer[0], remaining_fifo_msg_size(fd));
+    if(read_result == -1) return false;
+    buffers[fd].insert(buffers[fd].end(), buffer.begin(), buffer.begin() + read_result);
+
+    if(remaining_fifo_msg_size(fd) > 0) return false;
+
+    control_data msg;
+    msg.buf_length = pop_int(fd);
+    msg.buffer = std::vector<char>(buffers[fd].begin(), buffers[fd].begin() + msg.buf_length);
+
+    buffers[fd].clear();
+
+    msg_buffer.insert({fd, msg});
+
+    return true;
+}
+
+control_data manager::read_data(int fd) {
+    control_data msg = msg_buffer[fd];
+    msg_buffer.erase(fd);
     return msg;
 }

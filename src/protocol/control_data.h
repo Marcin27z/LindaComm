@@ -49,9 +49,14 @@ namespace protocol {
         void write_string(std::string);
 
         int send_msg(int);
+        int send_fifo_msg(int);
 
         control_data() = default;
         explicit control_data(int t): type(t), id_sender(0), id_recipient(0) {}
+
+        control_data(char*b, uint bl): buf_length(bl), id_sender(0), id_recipient(0) {
+            buffer = std::vector<char>(b, b+bl);
+        }
 
         control_data(int t, char* b, uint bl, uint id_s, int id_r = -1):
         type(t), buf_length(bl), id_sender(id_s), id_recipient(id_r) {
@@ -67,15 +72,18 @@ namespace protocol {
             ssize_t read_result;
 
             bool is_cd_ready(int);
-
             size_t expected_cd_size(int);
             size_t remaining_cd_size(int);
+
+            bool is_fifo_msg_ready(int);
+            size_t expected_fifo_msg_size(int);
+            size_t remaining_fifo_msg_size(int);
 
             uint pop_int(int);
 
         public:
-            int last_result() const;
             bool assemble(int);
+            bool assemble_fifo_msg(int);
 
             control_data read_data(int);
     };

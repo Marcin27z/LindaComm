@@ -1,5 +1,8 @@
+#include <utility>
+
 #include <iostream>
 #include <unistd.h>
+#include <thread>
 #include "tuple/Tuple.h"
 #include "architecture/Proces.h"
 #include "linda/linda.h"
@@ -19,13 +22,17 @@ void example(Args... args) {
     std::cout << tuple.getType() << std::endl;
 }
 
+void one_process(std::string directory){
+    Proces process(std::move(directory));
+    process.connect();
+
+}
+
 void example_ring(){
     std::string directory = "/home/eliot/";
     unlink((directory + "mainFIFO").c_str());
-    Proces proces1(directory), proces2(directory);
-    proces1.connect();
-    proces2.connect();
-    proces1.handleRequests();
+
+    one_process(directory);
 
 }
 

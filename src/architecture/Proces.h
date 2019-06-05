@@ -15,6 +15,7 @@
 #define PERM 0777
 
 class Proces: public Thread {
+    int nextId;
     int mainFd;
     int readFd;
     int writeFd;
@@ -28,12 +29,11 @@ class Proces: public Thread {
     std::string mainPipePath;
     protocol::manager manager;
 
-    std::vector<std::string> requests;
+    std::vector<std::string> requests; // TODO: przechowywanie requestów
 
     SynchronizedQueue<Tuple> outQueue;
 
 
-    void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
     // metody do obsługi zapytań od innych procesów
     void handleRequestTuple(protocol::control_data& request);
@@ -41,6 +41,13 @@ class Proces: public Thread {
     void handleAcceptTuple(protocol::control_data& request);
     void handleGiveTuple(protocol::control_data& request);
     void handleRequestConn(protocol::control_data request);
+
+    // metody do wysyłania zapytań do innych procesów
+    void sendRequestTuple(int destId, const std::string &tuplePattern);
+    void sendOwnTuple(int destId, int serialNumber);
+    void sendAcceptTuple(int destId, int serialNumber);
+    void sendGiveTuple(int destId, int serialNumber,  Tuple tuple);
+    void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
     // metoda do otwierania do zapisu kolejek procesów
     int openWrite(int id);
@@ -56,10 +63,14 @@ public:
     void connectToMainPipe();   // czyta stan pierścienia i aktualizuje go o obecny proces
     void createMainPipe();       // tworzy główną kolejkę
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
-    std::vector<int> readMainPipe(int mainFd);  // zwraca wektor id procesów obecnych w pierścieniu
+    std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
+    Tuple findTuple(const std::string& tuplePattern);
+    int findRequest(int serialNumber);
 
-    void writeMainPipe(int mainFd, const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
+    void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
+    Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
     void put(Tuple);
+    void addRequest(const std::string& request);
 };
 
 class ProcesException : public std::exception

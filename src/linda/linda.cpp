@@ -1,4 +1,5 @@
 #include <utility>
+#include <future>
 
 //
 // Created by Marcin on 05.06.2019.
@@ -15,13 +16,17 @@ namespace linda {
         proces.start();
     }
 
+    void terminate_linda() {
+        proces.join();
+    }
+
     void output_linda(Tuple tuple) {
         proces.put(std::move(tuple));
     }
 
-    Tuple input_linda() {
+    Tuple input_linda(std::string pattern, int timeout) {
     }
 
-    Tuple read_linda() {
+    Tuple read_linda(std::string pattern, int timeout) {
     }
 }

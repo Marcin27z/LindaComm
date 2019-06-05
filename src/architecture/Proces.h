@@ -30,7 +30,9 @@ class Proces: public Thread {
 
     std::vector<std::string> requests;
 
-    SynchronizedQueue<Tuple> outQueue;
+    SynchronizedQueue<Tuple> outTuplesQueue;
+    SynchronizedQueue<Tuple> intTuplesQueue;
+
 
 
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
@@ -60,6 +62,7 @@ public:
 
     void writeMainPipe(int mainFd, const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     void put(Tuple);
+    Tuple getTuple();
 };
 
 class ProcesException : public std::exception

@@ -32,6 +32,6 @@ void example_ring(){
 int main() {
     linda::init_linda();
     linda::output_linda(Tuple(1, 2, 3));
-    while(true);
+    linda::terminate_linda();
     return 0;
 }

@@ -268,7 +268,11 @@ int Proces::openWrite(int id) {
 }
 
 void Proces::put(Tuple tuple) {
-    outQueue.put(tuple);
+    outTuplesQueue.put(tuple);
+}
+
+Tuple Proces::getTuple() {
+    return intTuplesQueue.get();
 }
 
 

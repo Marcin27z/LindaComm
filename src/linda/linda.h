@@ -13,11 +13,13 @@ namespace linda {
 
     void init_linda();
 
+    void terminate_linda();
+
     void output_linda(Tuple tuple);
 
-    Tuple input_linda();
+    Tuple input_linda(std::string pattern, int timeout);
 
-    Tuple read_linda();
+    Tuple read_linda(std::string pattern, int timeout);
 }
 
 #endif //LINDA_H

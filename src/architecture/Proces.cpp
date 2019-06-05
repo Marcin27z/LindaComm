@@ -272,7 +272,7 @@ void Proces::put(Tuple tuple) {
 }
 
 Tuple Proces::getTuple() {
-    return intTuplesQueue.get();
+//    return intTuplesQueue.get();
 }
 
 

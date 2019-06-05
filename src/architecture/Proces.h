@@ -15,6 +15,8 @@
 #define PERM 0777
 
 class Proces: public Thread {
+    bool quitFlag = false;
+
     int nextId;
     int mainFd;
     int readFd;

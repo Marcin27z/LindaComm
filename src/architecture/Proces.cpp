@@ -209,7 +209,7 @@ void Proces::sendRequestConn(int destId, int newId){
 void Proces::run() {
     connect();
 
-    while (true) {
+    while (!quitFlag) {
         handleRequests();
     }
 
@@ -236,6 +236,7 @@ void Proces::handleRequests() {
                 handleRequestConn(request);
                 break;
             default:
+                quitFlag = true;
                 break;
         }
     }
@@ -252,6 +253,7 @@ void Proces::handleRequestTuple(protocol::control_data& request) {
     if(trove.first)
         sendOwnTuple(request.id_sender, serialNumber);
     else if(request.id_sender != processId) {
+        addRequest(tuplePattern, request.id_sender, serialNumber);
         request.write_int(serialNumber);
         request.write_int(tuplePatternSize);
         request.write_string(tuplePattern);
@@ -260,29 +262,42 @@ void Proces::handleRequestTuple(protocol::control_data& request) {
 }
 
 void Proces::handleOwnTuple(protocol::control_data& request) {
-    int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-
-    if(findRequest(serialNumber) >= 0)  // jeśli żądanie jest nadal aktualne
-        sendAcceptTuple(request.id_sender, serialNumber);     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+    if(request.id_recipient == processId) {
+        int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
+        if(findRequest(serialNumber) >= 0)  // jeśli żądanie jest nadal aktualne
+            sendAcceptTuple(request.id_sender, serialNumber);     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+    }
+    else
+        forwardMessage(request);
 }
 
 void Proces::handleAcceptTuple(protocol::control_data& request) {
     int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-
-    if(findRequest(serialNumber) >= 0)  // szukamy krotki
-        sendGiveTuple(request.id_sender, serialNumber, Tuple(nullptr));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+    // TODO: Usuń request ze swojego wektora
+    if(request.id_recipient == processId) {
+        if(findRequest(serialNumber) >= 0)  // szukamy krotki
+            sendGiveTuple(request.id_sender, serialNumber, Tuple(nullptr));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+    }
+    else {
+        request.write_int(serialNumber);
+        forwardMessage(request);
+    }
 }
 
 void Proces::handleGiveTuple(protocol::control_data& request) {
-    int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-    int tupleTypeSize = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-    std::string tupleType = request.read_string(tupleTypeSize); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
+    if(request.id_recipient == processId) {
+        int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
+        int tupleTypeSize = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
+        std::string tupleType = request.read_string(tupleTypeSize); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
 
-    Tuple tuple = readTupleFromRequest(serialNumber, tupleType, request);
+        Tuple tuple = readTupleFromRequest(serialNumber, tupleType, request);
 
-    //TODO: tutaj sprawdzenie czy chcieliśmy tę krotkę?
-    // usunięcie krotki z requestów,
-    // wypisanie krotki użytkownikowi?
+        //TODO: tutaj sprawdzenie czy chcieliśmy tę krotkę?
+        // usunięcie krotki z requestów,
+        // wypisanie krotki użytkownikowi?
+    }
+    else
+        forwardMessage(request);
 }
 
 void Proces::handleRequestConn(protocol::control_data request) {

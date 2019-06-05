@@ -18,7 +18,8 @@ Proces::Proces(std::string directory_,int mainPipeSize_, int pipeSize_):
                         mainPipePath(std::move(directory + "mainFIFO")),
                         mainPipeSize(mainPipeSize_), pipeSize(pipeSize_)
 {
-
+    pthread_mutex_init(&mutex, nullptr);
+    pthread_cond_init(&cond, nullptr);
 }
 
 void Proces::createPipe(int size)
@@ -288,8 +289,43 @@ void Proces::put(Tuple tuple) {
     outTuplesQueue.put(tuple);
 }
 
-Tuple Proces::getTuple() {
-//    return intTuplesQueue.get();
+Tuple Proces::getTuple(int timeout) {
+    pthread_mutex_lock(&mutex);
+    isWantingTuple = true;
+    if (isTupleReady) {
+        isTupleReady = false;
+        isWantingTuple = false;
+        pthread_mutex_unlock(&mutex);
+        return tuple;
+    } else {
+        timespec time;
+        timespec_get(&time, TIME_UTC);
+        time.tv_sec += timeout;
+        time.tv_nsec = 0;
+        int status = pthread_cond_timedwait(&cond, &mutex, &time);
+        if (isTupleReady) {
+            isWantingTuple = false;
+            isTupleReady = false;
+            pthread_mutex_unlock(&mutex);
+            return tuple;
+        } else {
+            isWantingTuple = false;
+            pthread_mutex_unlock(&mutex);
+            return Tuple(0);
+        }
+    }
+}
+
+
+void Proces::tupleReady(Tuple tuple) {
+    pthread_mutex_lock(&mutex);
+    if (isWantingTuple) {
+        this->tuple = std::move(tuple);
+        isTupleReady = true;
+        pthread_cond_signal(&cond);
+    }
+    pthread_mutex_unlock(&mutex);
+
 }
 
 Tuple Proces::findTuple(const std::string& tuplePattern) {
@@ -355,6 +391,7 @@ Tuple Proces::readTupleFromRequest(int number, const std::string& tupleType, pro
 void Proces::addRequest(const std::string& request) {
 
 }
+
 
 ProcesException::ProcesException(const std::string &msg)  : info("Process Exception: " + msg)
 {

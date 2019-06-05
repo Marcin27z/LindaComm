@@ -29,10 +29,15 @@ class Proces: public Thread {
     std::string mainPipePath;
     protocol::manager manager;
 
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    bool isTupleReady = false;
+    bool isWantingTuple = false;
+
     std::vector<std::string> requests; // TODO: przechowywanie requestów
 
     SynchronizedQueue<Tuple> outTuplesQueue;
-    SynchronizedQueue<Tuple> intTuplesQueue;
+    Tuple tuple = Tuple(0);
 
 
 
@@ -53,6 +58,7 @@ class Proces: public Thread {
 
     // metoda do otwierania do zapisu kolejek procesów
     int openWrite(int id);
+    void tupleReady(Tuple tuple);
 
 public:
     explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
@@ -74,7 +80,8 @@ public:
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
     void put(Tuple);
     void addRequest(const std::string& request);
-    Tuple getTuple();
+    Tuple getTuple(int timeout);
+
 };
 
 class ProcesException : public std::exception

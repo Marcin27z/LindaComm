@@ -21,12 +21,11 @@ Proces::Proces(std::string directory_,int mainPipeSize_, int pipeSize_):
 
 void Proces::createPipe(int size)
 {
-    pipePath = "/home/karol/pipe_" + std::to_string(processId);
+    pipePath = directory +"pipe_" + std::to_string(processId);
     if(mkfifo(pipePath.c_str(), PERM) < 0)
     {
         throw ProcesException("creating main fifo failed: " + pipePath + ", " + strerror(errno));
     }
-    int readFd;
     if((readFd = open(pipePath.c_str(), O_RDWR)) < 0)
     {
         throw ProcesException("opening main fifo failed: " + pipePath + ", " + strerror(errno));
@@ -34,11 +33,10 @@ void Proces::createPipe(int size)
 
     if(size) fcntl(readFd, F_SETPIPE_SZ, size);
 
-    close(readFd);
 }
 
 void Proces::connectToMainPipe() {
-    int mainFd = open(mainPipePath.c_str(), O_RDWR);
+    mainFd = open(mainPipePath.c_str(), O_RDWR);
 
     // jeśli główna kolejka nie istnieje
     if(mainFd == -1)
@@ -72,12 +70,11 @@ void Proces::connectToMainPipe() {
             nextPipePath = directory + "pipe_" + std::to_string(processId - 1);
         }
     }
-    close(mainFd);
+    writeFd = open(nextPipePath.c_str(), O_RDWR);
 }
 
 void Proces::createMainPipe()
 {
-    int mainFd;
     // utwórz główną kolejkę
     if(mkfifo(mainPipePath.c_str(), PERM) < 0)
     {
@@ -92,13 +89,7 @@ void Proces::createMainPipe()
 
     processId = 0;
     writeMainPipe(mainFd, std::vector<int>(1,0));
-    int test = open(mainPipePath.c_str(), O_RDWR);
-    std::vector<int> x = readMainPipe(test);
-    writeMainPipe(mainFd, std::vector<int>(1,1));
-    std::vector<int> y = readMainPipe(test);
-    writeMainPipe(mainFd, std::vector<int>(1,0));
 
-    close(mainFd);
 }
 
 void Proces::connect() {
@@ -213,7 +204,8 @@ void Proces::sendRequestConn(int destId, int newId){
     protocol::control_data msg(4);
     msg.write_int(newId);
     msg.send_msg(destFd);
-    close(destFd);
+
+    //close(destFd);
 }
 
 void Proces::run() {
@@ -224,7 +216,6 @@ void Proces::run() {
 }
 
 void Proces::handleRequests() {
-    int readFd = open(pipePath.c_str(), O_RDWR);
     if(manager.assemble(readFd)) {
         protocol::control_data request = manager.read_data(readFd);
 
@@ -241,7 +232,6 @@ void Proces::handleRequests() {
                 handleRequestConn(request);
         }
     }
-    close(readFd);
 }
 
 void Proces::handleRequestTuple(protocol::control_data& request) {
@@ -262,16 +252,17 @@ void Proces::handleGiveTuple(protocol::control_data& request) {
 
 void Proces::handleRequestConn(protocol::control_data request) {
     int destId = request.read_int();
-    openWrite(destId);
+    close(writeFd); // TODO: czy tutaj close(writefd) czegoś nie zapsuje?
+    writeFd = openWrite(destId);
 }
 
 int Proces::openWrite(int id) {
 
     // zmień ścieżkę na zadane fifo
     std::string path = directory + "pipe_" + std::to_string(id);
-    int writeFd = open(path.c_str(), O_WRONLY);
+    int fd = open(path.c_str(), O_RDWR);
 
-    return writeFd;
+    return fd;
 }
 
 

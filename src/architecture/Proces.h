@@ -12,6 +12,9 @@
 #define PERM 0777
 
 class Proces {
+    int mainFd;
+    int readFd;
+    int writeFd;
     int processId;
     int pipeSize;
     int mainPipeSize;

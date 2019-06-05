@@ -12,7 +12,7 @@
 #include "Proces.h"
 
 Proces::Proces(std::string directory_,int mainPipeSize_, int pipeSize_):
-                        directory(std::move(directory_)), processId(0), readFd(0), writeFd(0),
+                        directory(std::move(directory_)), processId(0),
                         mainPipePath(std::move(directory + "mainFIFO")),
                         mainPipeSize(mainPipeSize_), pipeSize(pipeSize_)
 {
@@ -22,7 +22,15 @@ Proces::Proces(std::string directory_,int mainPipeSize_, int pipeSize_):
 void Proces::createPipe(int size)
 {
     pipePath = "/home/karol/pipe_" + std::to_string(processId);
-    mkfifo(pipePath.c_str(), PERM);          // create fifo
+    if(mkfifo(pipePath.c_str(), PERM) < 0)
+    {
+        throw ProcesException("creating main fifo failed: " + mainPipePath + ", " + strerror(errno));
+    }
+    int readFd;
+    if((readFd = open(mainPipePath.c_str(), O_RDWR)) < 0)
+    {
+        throw ProcesException("opening main fifo failed: " + mainPipePath + ", " + strerror(errno));
+    }
 
     if(size) fcntl(readFd, F_SETPIPE_SZ, size);
 
@@ -44,25 +52,25 @@ void Proces::connectToMainPipe() {
     else
     {
         // odczytaj strukturę i wstaw nową ze swoim id
-        std::vector<int> structure_vec = std::move(readMainPipe(mainFd));
-        // np. jeśli w strukturze były id 0 i 1, obecny proces dostaje id równe .size(), czyli 2
-        processId = structure_vec.size(); // TODO poprawić wszystkie liniji zakładające że elementy w strukturze różnią się o 1
-        structure_vec.push_back(structure_vec.size());
+        std::vector<int> new_structure = std::move(readMainPipe(mainFd));
+        // obecny proces przybiera ID o 1 większe niż ostatni
+        processId = new_structure[new_structure.size() - 1] + 1;
+        new_structure.push_back(processId);
 
         // zapisz nową strukturę do głównego fifo
-        writeMainPipe(mainFd, structure_vec);
+        writeMainPipe(mainFd, new_structure);
 
         // obecny proces wysyła wiadomość do ostatniego w głównej kolejce, aby ten się z nim połączył
         if(processId > 0)
         {
-            structure_vec[];
-            sendRequestConn(processId - 1, processId);
+            // utwórz własną kolejkę
+            createPipe();
 
-            std::string lastPipePath = directory + "pipe_" + std::to_string(processId - 1);
-            writeFd = open(lastPipePath.c_str(), O_RDWR);
+            sendRequestConn(processId - 1, processId); // ostatni ma  id o 1 mniejsze od obecnego procesu
+
+            nextPipePath = directory + "pipe_" + std::to_string(processId - 1);
         }
     }
-    close(mainFd);
 }
 
 int Proces::createMainPipe()
@@ -84,7 +92,6 @@ int Proces::createMainPipe()
     writeMainPipe(mainFd, std::vector<int>(1,0));
 
     return mainFd;
-
 }
 
 void Proces::connect() {
@@ -96,7 +103,6 @@ void Proces::connect() {
         std::cerr << e.what() << std::endl;
         return;
     }
-
 }
 
 std::vector<int> Proces::readMainPipe(int mainFd) {
@@ -121,7 +127,11 @@ std::vector<int> Proces::readMainPipe(int mainFd) {
 }
 
 void Proces::writeMainPipe(int mainFd, const std::vector<int>& new_structure) {
-    protocol::control_data structure(999);
+    int x;
+    if(processId == 0) x = 998;
+    else if(processId == 1) x = 997;
+    else x = 996;
+    protocol::control_data structure(x);
     structure.write_int(new_structure.size());
 
     for(int it : new_structure)
@@ -147,14 +157,12 @@ void Proces::disconnect()
     // jeśli obecny proces jest jedynym, należy wysadzić główną kolejkę w powietrze
     if(structure.size() == 1)
     {
-        close(mainFd);
         unlink(mainPipePath.c_str());
     }
     else if(structure.size() > 1)
     {
-        close(writeFd);
-        close(readFd);
-        unlink((directory + "pipe_" + std::to_string(processId)).c_str());
+
+        unlink(pipePath.c_str());
 
         auto it = std::find(structure.begin(), structure.end(), processId);
         int index = std::distance(structure.begin(), it);
@@ -177,7 +185,6 @@ void Proces::disconnect()
         // uaktualnij strukturę w głównej kolejce
         structure.erase(it);
         writeMainPipe(mainFd, structure);
-        close(mainFd);
     }
 
 }
@@ -199,16 +206,19 @@ void Proces::sendRequestConn(int destId, int newId){
     protocol::control_data msg(4);
     msg.write_int(newId);
     msg.send_msg(destFd);
+    close(destFd);
 }
 
 void Proces::run() {
     connect();
 
-    //while()
+    //TODO run while()
 
 }
 
 void Proces::handleRequests() {
+   // close(readFd);
+    int readFd = open(pipePath.c_str(), O_RDWR);
     if(manager.assemble(readFd)) {
         protocol::control_data request = manager.read_data(readFd);
 
@@ -248,13 +258,13 @@ void Proces::handleRequestConn(protocol::control_data request) {
     openWrite(destId);
 }
 
-void Proces::openWrite(int id) {
-    // zamknij zapis do kolejki obecnie otworzonej do zapisu
-    if(writeFd) close(writeFd);
+int Proces::openWrite(int id) {
 
-    // otwórz zadaną kolejkę
+    // zmień ścieżkę na zadane fifo
     std::string path = directory + "pipe_" + std::to_string(id);
-    writeFd = open(path.c_str(), O_WRONLY);
+    int writeFd = open(path.c_str(), O_WRONLY);
+
+    return writeFd;
 }
 
 

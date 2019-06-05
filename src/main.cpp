@@ -20,10 +20,11 @@ void example(Args... args) {
 
 void example_ring(){
     std::string directory = "/home/karol/";
-    unlink((directory + "mainFIFO").c_str());  // Add before mknod()
-    Proces proces1(directory), proces2(directory), proces3(directory),proces4(directory), proces5(directory), proces6(directory);
+    unlink((directory + "mainFIFO").c_str());
+    Proces proces1(directory), proces2(directory), proces3(directory);
     proces1.connect();
     proces2.connect();
+    proces1.handleRequests();
 
 }
 

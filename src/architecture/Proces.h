@@ -13,20 +13,21 @@
 
 class Proces {
     int processId;
-    int readFd;
-    int writeFd;
-    int pipeSize{};
-    std::string directory;
-    std::string pipePath{};
-    std::vector<std::string> requests;
-    std::string mainPipePath;
+    int pipeSize;
     int mainPipeSize;
+
+    std::string directory;
+    std::string pipePath;
+    std::string nextPipePath;
+    std::string mainPipePath;
     protocol::manager manager;
+
+    std::vector<std::string> requests;
+
 
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
     // metody do obsługi zapytań od innych procesów
-    void handleRequests();  // pobiera request z kolejki procesu i wywołuje odpowiednią metodę do jego obsługi
     void handleRequestTuple(protocol::control_data& request);
     void handleOwnTuple(protocol::control_data& request);
     void handleAcceptTuple(protocol::control_data& request);
@@ -34,11 +35,12 @@ class Proces {
     void handleRequestConn(protocol::control_data request);
 
     // metoda do otwierania do zapisu kolejek procesów
-    void openWrite(int id);
+    int openWrite(int id);
 
 public:
     explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
     ~Proces();
+    void handleRequests();  // pobiera request z kolejki procesu i wywołuje odpowiednią metodę do jego obsługi
 
     void run();
     void connect();       // podłącza obecny proces do pierścienia
@@ -48,7 +50,7 @@ public:
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe(int mainFd);  // zwraca wektor id procesów obecnych w pierścieniu
 
-    static void writeMainPipe(int mainFd, const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
+    void writeMainPipe(int mainFd, const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
 };
 
 class ProcesException : public std::exception

@@ -129,13 +129,12 @@ size_t manager::remaining_cd_size(int socket) {
 bool manager::assemble(int socket) {
     if(!is_cd_ready(socket)) {
         std::vector<char> buffer(4*sizeof(int) - buffers[socket].size());
-        int mainReadFd;
-        std::string mainPipePath = "/home/karol/mainFIFO";
-        if((mainReadFd = open(mainPipePath.c_str(), O_RDONLY)) < 0)
-        {
+        //int mainReadFd;
+        //std::string mainPipePath = "/home/karol/mainFIFO";
 
-        }
-        read_result = read(mainReadFd, &buffer[0], 4*sizeof(int) - buffers[socket].size());
+//        if(( mainReadFd= open(mainPipePath.c_str(), O_RDWR)) < 0){}
+
+        read_result = read(socket, &buffer[0], 4*sizeof(int) - buffers[socket].size());
         if(read_result == -1) return false;
         buffers[socket].insert(buffers[socket].end(), buffer.begin(), buffer.begin() + read_result);
 

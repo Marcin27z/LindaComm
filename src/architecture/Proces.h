@@ -46,7 +46,7 @@ public:
     void connect();       // podłącza obecny proces do pierścienia
     void disconnect();    // rozłącza obecny proces z pierścienia
     void connectToMainPipe();   // czyta stan pierścienia i aktualizuje go o obecny proces
-    int createMainPipe();       // tworzy główną kolejkę
+    void createMainPipe();       // tworzy główną kolejkę
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe(int mainFd);  // zwraca wektor id procesów obecnych w pierścieniu
 

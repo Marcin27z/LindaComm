@@ -24,16 +24,17 @@ void Proces::createPipe(int size)
     pipePath = "/home/karol/pipe_" + std::to_string(processId);
     if(mkfifo(pipePath.c_str(), PERM) < 0)
     {
-        throw ProcesException("creating main fifo failed: " + mainPipePath + ", " + strerror(errno));
+        throw ProcesException("creating main fifo failed: " + pipePath + ", " + strerror(errno));
     }
     int readFd;
-    if((readFd = open(mainPipePath.c_str(), O_RDWR)) < 0)
+    if((readFd = open(pipePath.c_str(), O_RDWR)) < 0)
     {
-        throw ProcesException("opening main fifo failed: " + mainPipePath + ", " + strerror(errno));
+        throw ProcesException("opening main fifo failed: " + pipePath + ", " + strerror(errno));
     }
 
     if(size) fcntl(readFd, F_SETPIPE_SZ, size);
 
+    close(readFd);
 }
 
 void Proces::connectToMainPipe() {
@@ -71,9 +72,10 @@ void Proces::connectToMainPipe() {
             nextPipePath = directory + "pipe_" + std::to_string(processId - 1);
         }
     }
+    close(mainFd);
 }
 
-int Proces::createMainPipe()
+void Proces::createMainPipe()
 {
     int mainFd;
     // utwórz główną kolejkę
@@ -90,8 +92,13 @@ int Proces::createMainPipe()
 
     processId = 0;
     writeMainPipe(mainFd, std::vector<int>(1,0));
+    int test = open(mainPipePath.c_str(), O_RDWR);
+    std::vector<int> x = readMainPipe(test);
+    writeMainPipe(mainFd, std::vector<int>(1,1));
+    std::vector<int> y = readMainPipe(test);
+    writeMainPipe(mainFd, std::vector<int>(1,0));
 
-    return mainFd;
+    close(mainFd);
 }
 
 void Proces::connect() {
@@ -217,7 +224,6 @@ void Proces::run() {
 }
 
 void Proces::handleRequests() {
-   // close(readFd);
     int readFd = open(pipePath.c_str(), O_RDWR);
     if(manager.assemble(readFd)) {
         protocol::control_data request = manager.read_data(readFd);
@@ -235,6 +241,7 @@ void Proces::handleRequests() {
                 handleRequestConn(request);
         }
     }
+    close(readFd);
 }
 
 void Proces::handleRequestTuple(protocol::control_data& request) {

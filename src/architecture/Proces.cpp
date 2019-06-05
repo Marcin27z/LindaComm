@@ -211,7 +211,9 @@ void Proces::sendRequestConn(int destId, int newId){
 void Proces::run() {
     connect();
 
-    //TODO run while()
+    while (true) {
+        handleRequests();
+    }
 
 }
 
@@ -265,6 +267,9 @@ int Proces::openWrite(int id) {
     return fd;
 }
 
+void Proces::put(Tuple tuple) {
+    outQueue.put(tuple);
+}
 
 
 ProcesException::ProcesException(const std::string &msg)  : info("Process Exception: " + msg)

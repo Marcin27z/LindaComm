@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "tuple/Tuple.h"
 #include "architecture/Proces.h"
+#include "linda/linda.h"
 
 template<typename... Args>
 void example(Args... args) {
@@ -19,7 +20,7 @@ void example(Args... args) {
 }
 
 void example_ring(){
-    std::string directory = "/home/karol/";
+    std::string directory = "/home/eliot/";
     unlink((directory + "mainFIFO").c_str());
     Proces proces1(directory), proces2(directory);
     proces1.connect();
@@ -29,7 +30,8 @@ void example_ring(){
 }
 
 int main() {
-    //example("hello", 3, 2, 15.0f, "world");
-    example_ring();
+    linda::init_linda();
+    linda::output_linda(Tuple(1, 2, 3));
+    while(true);
     return 0;
 }

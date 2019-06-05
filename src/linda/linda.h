@@ -6,13 +6,18 @@
 #define LINDA_H
 
 #include "../protocol/control_data.h"
+#include "../tuple/Tuple.h"
+
 
 namespace linda {
-    void output_linda() {}
 
-    void input_linda() {}
+    void init_linda();
 
-    void read_linda() {}
+    void output_linda(Tuple tuple);
+
+    Tuple input_linda();
+
+    Tuple read_linda();
 }
 
 #endif //LINDA_H

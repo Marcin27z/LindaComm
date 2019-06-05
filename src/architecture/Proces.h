@@ -8,10 +8,13 @@
 #include <iostream>
 #include <string>
 #include "../protocol/control_data.h"
+#include "../thread/Thread.h"
+#include "../tuple/Tuple.h"
+#include "../thread/SynchronizedQueue.h"
 
 #define PERM 0777
 
-class Proces {
+class Proces: public Thread {
     int mainFd;
     int readFd;
     int writeFd;
@@ -26,6 +29,8 @@ class Proces {
     protocol::manager manager;
 
     std::vector<std::string> requests;
+
+    SynchronizedQueue<Tuple> outQueue;
 
 
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
@@ -45,7 +50,7 @@ public:
     ~Proces();
     void handleRequests();  // pobiera request z kolejki procesu i wywołuje odpowiednią metodę do jego obsługi
 
-    void run();
+    void run() override;
     void connect();       // podłącza obecny proces do pierścienia
     void disconnect();    // rozłącza obecny proces z pierścienia
     void connectToMainPipe();   // czyta stan pierścienia i aktualizuje go o obecny proces
@@ -54,6 +59,7 @@ public:
     std::vector<int> readMainPipe(int mainFd);  // zwraca wektor id procesów obecnych w pierścieniu
 
     void writeMainPipe(int mainFd, const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
+    void put(Tuple);
 };
 
 class ProcesException : public std::exception

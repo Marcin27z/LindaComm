@@ -1,5 +1,5 @@
 //
-// Created by rzaro on 01.06.2019.
+// Created by Karol Rzepka on 01.06.2019.
 //
 
 #ifndef UXP1A_PROCES_H
@@ -23,21 +23,32 @@ class Proces {
     int mainPipeSize;
     protocol::manager manager;
 
-    void addRequest(const std::string &request);
+    void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
+    // metody do obsługi zapytań od innych procesów
+    void handleRequests();  // pobiera request z kolejki procesu i wywołuje odpowiednią metodę do jego obsługi
+    void handleRequestTuple(protocol::control_data& request);
+    void handleOwnTuple(protocol::control_data& request);
+    void handleAcceptTuple(protocol::control_data& request);
+    void handleGiveTuple(protocol::control_data& request);
+    void handleRequestConn(protocol::control_data request);
+
+    // metoda do otwierania do zapisu kolejek procesów
+    void openWrite(int id);
 
 public:
     explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
     ~Proces();
 
-    void connect();
-    void disconnect();
-    void connectToMainPipe();
-    int createMainPipe();
-    void createPipe(int size = 0);
-    std::vector<int> readMainPipe(int mainFd);
+    void run();
+    void connect();       // podłącza obecny proces do pierścienia
+    void disconnect();    // rozłącza obecny proces z pierścienia
+    void connectToMainPipe();   // czyta stan pierścienia i aktualizuje go o obecny proces
+    int createMainPipe();       // tworzy główną kolejkę
+    void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
+    std::vector<int> readMainPipe(int mainFd);  // zwraca wektor id procesów obecnych w pierścieniu
 
-    static void writeMainPipe(int mainFd, const std::vector<int> &new_structure);
+    static void writeMainPipe(int mainFd, const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
 };
 
 class ProcesException : public std::exception

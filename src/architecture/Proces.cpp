@@ -26,11 +26,11 @@ void Proces::createPipe(int size)
     pipePath = directory +"pipe_" + std::to_string(processId);
     if(mkfifo(pipePath.c_str(), PERM) < 0)
     {
-        throw ProcesException("creating main fifo failed: " + pipePath + ", " + strerror(errno));
+        throw ProcesException("creating pipe failed: " + pipePath + ", " + strerror(errno));
     }
     if((readFd = open(pipePath.c_str(), O_RDWR)) < 0)
     {
-        throw ProcesException("opening main fifo failed: " + pipePath + ", " + strerror(errno));
+        throw ProcesException("opening pipe failed: " + pipePath + ", " + strerror(errno));
     }
 
     if(size) fcntl(readFd, F_SETPIPE_SZ, size);
@@ -221,14 +221,21 @@ void Proces::handleRequests() {
         switch (request.type) {
             case 0:
                 handleRequestTuple(request);
+                break;
             case 1:
                 handleOwnTuple(request);
+                break;
             case 2:
                 handleAcceptTuple(request);
+                break;
             case 3:
                 handleGiveTuple(request);
+                break;
             case 4:
                 handleRequestConn(request);
+                break;
+            default:
+                break;
         }
     }
 }
@@ -240,7 +247,11 @@ void Proces::handleRequestTuple(protocol::control_data& request) {
     int tuplePatternSize = request.read_int();
     std::string tuplePattern = request.read_string(tuplePatternSize);
 
-    findTuple(tuplePattern);
+    auto trove = findTuple(tuplePattern);
+    if(trove.first)
+        sendOwnTuple(request.id_sender, serialNumber);
+    else if(request.id_sender != processId)
+        forwardMessage(request);
 }
 
 void Proces::handleOwnTuple(protocol::control_data& request) {
@@ -254,7 +265,7 @@ void Proces::handleAcceptTuple(protocol::control_data& request) {
     int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
 
     if(findRequest(serialNumber) >= 0)  // szukamy krotki
-        sendGiveTuple(nextId, serialNumber, Tuple(nullptr));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+        sendGiveTuple(request.id_sender, serialNumber, Tuple(nullptr));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
 }
 
 void Proces::handleGiveTuple(protocol::control_data& request) {
@@ -289,16 +300,16 @@ void Proces::put(Tuple tuple) {
 }
 
 Tuple Proces::getTuple() {
-//    return intTuplesQueue.get();
+//    return inTuplesQueue.get();
 }
 
-Tuple Proces::findTuple(const std::string& tuplePattern) {
+std::pair<bool,Tuple> Proces::findTuple(const std::string& tuplePattern) {
  /*   for(Tuple tuple : tuples) {
         if (tuple.matchPattern(tuplePattern)) {
             return tuple;
         }
     }*/
-    return Tuple(nullptr);
+    return std::pair<bool,Tuple>({false, Tuple(nullptr)});
 }
 
 void Proces::sendRequestTuple(int destId, const std::string& tuplePattern) {
@@ -312,7 +323,7 @@ void Proces::sendRequestTuple(int destId, const std::string& tuplePattern) {
 
     request.send_msg(writeFd);
 
-    addRequest(std::string("")); // TODO
+    addRequest(tuplePattern, processId, serialNumber); // TODO
 }
 
 void Proces::sendOwnTuple(int destId, int serialNumber) {
@@ -343,8 +354,13 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
     request.send_msg(writeFd);
 }
 
+void Proces::forwardMessage(protocol::control_data& request) {
+    request.send_msg(nextId);
+}
+
 int Proces::findRequest(int serialNumber) {
-    // TODO: jak przechowywać requesty i je znajdywać?
+    auto request = requests.find(serialNumber);
+    if(request != requests.end()) return 1;
     return -1;
 }
 
@@ -352,8 +368,9 @@ Tuple Proces::readTupleFromRequest(int number, const std::string& tupleType, pro
     return Tuple(nullptr);
 }
 
-void Proces::addRequest(const std::string& request) {
-
+void Proces::addRequest(const std::string& request, int idSender, int serialNumber) {
+    std::pair<std::string, int> requestInfo({request, idSender});
+    requests.insert({serialNumber, requestInfo});
 }
 
 ProcesException::ProcesException(const std::string &msg)  : info("Process Exception: " + msg)

@@ -29,10 +29,11 @@ class Proces: public Thread {
     std::string mainPipePath;
     protocol::manager manager;
 
-    std::vector<std::string> requests; // TODO: przechowywanie requestów
+    //std::vector<std::string> requests; // TODO: przechowywanie requestów
+    std::map<int, std::pair<std::string, int>> requests;
 
     SynchronizedQueue<Tuple> outTuplesQueue;
-    SynchronizedQueue<Tuple> intTuplesQueue;
+    SynchronizedQueue<Tuple> inTuplesQueue;
 
 
 
@@ -51,6 +52,10 @@ class Proces: public Thread {
     void sendGiveTuple(int destId, int serialNumber,  Tuple tuple);
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
+    // metoda do przekazywania dalej wiadomości
+
+    void forwardMessage(protocol::control_data& request);
+
     // metoda do otwierania do zapisu kolejek procesów
     int openWrite(int id);
 
@@ -67,13 +72,13 @@ public:
     void createMainPipe();       // tworzy główną kolejkę
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
-    Tuple findTuple(const std::string& tuplePattern);
+    std::pair<bool,Tuple> findTuple(const std::string& tuplePattern);
     int findRequest(int serialNumber);
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
     void put(Tuple);
-    void addRequest(const std::string& request);
+    void addRequest(const std::string& request, int idSender, int serialNumber);
     Tuple getTuple();
 };
 

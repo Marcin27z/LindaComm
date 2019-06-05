@@ -29,7 +29,7 @@ void one_process(std::string directory){
 }
 
 void example_ring(){
-    std::string directory = "/home/eliot/";
+    std::string directory = "/home/fen/";
     unlink((directory + "mainFIFO").c_str());
 
     one_process(directory);

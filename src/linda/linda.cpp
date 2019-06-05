@@ -10,7 +10,7 @@
 #include "../architecture/Proces.h"
 
 namespace linda {
-    Proces proces("/home/fen/pipe/");
+    Proces proces("/home/eliot/pipe/");
 
     void init_linda() {
         proces.start();
@@ -25,6 +25,8 @@ namespace linda {
     }
 
     Tuple input_linda(std::string pattern, int timeout) {
+        sleep(1);
+        proces.sendRequestTuple(-1, "pattern");
         return proces.getTuple(timeout);
     }
 

@@ -22,13 +22,13 @@ void example(Args... args) {
     std::cout << tuple.getType() << std::endl;
 }
 
-void one_process(std::string directory){
+void one_process(std::string directory) {
     Proces process(std::move(directory));
     process.connect();
 
 }
 
-void example_ring(){
+void example_ring() {
     std::string directory = "/home/fen/";
     unlink((directory + "mainFIFO").c_str());
 
@@ -39,9 +39,15 @@ void example_ring(){
 int main() {
     linda::init_linda();
     linda::output_linda(Tuple(1, 2, 3));
-    std::cout << "trying to get tuple" << std::endl;
-    Tuple tuple = linda::input_linda("", 5);
-    std::cout << "finished" << std::endl;
+    int i;
+    std::cin >> i;
+    if (i == 2) {
+        std::cout << "trying to get tuple" << std::endl;
+        Tuple tuple = linda::input_linda("", 5);
+        std::cout << "finished" << std::endl;
+    } else if (i == 1) {
+
+    }
     linda::terminate_linda();
     return 0;
 }

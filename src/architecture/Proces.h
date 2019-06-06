@@ -92,7 +92,7 @@ public:
     Tuple getTuple(int timeout);
 
     void displayRequests();
-
+    void displayRingState();
     void removeRequest(int serialNumber);
 };
 

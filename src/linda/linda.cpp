@@ -29,6 +29,13 @@ namespace linda {
         proces.sendRequestTuple(-1, pattern);
         return proces.getTuple(timeout);
     }
+    void disconnect(){
+        proces.disconnect();
+    }
+    void display_state(){
+        proces.displayRingState();
+    }
+
 
     Tuple read_linda(std::string pattern, int timeout) {
     }

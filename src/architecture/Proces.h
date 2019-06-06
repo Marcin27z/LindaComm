@@ -81,6 +81,7 @@ public:
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
     std::pair<bool,Tuple> findTuple(const std::string& tuplePattern);
+
     int findRequest(int serialNumber);
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
@@ -89,6 +90,10 @@ public:
 
     void addRequest(const std::string& request, int idSender, int serialNumber);
     Tuple getTuple(int timeout);
+
+    void displayRequests();
+
+    void removeRequest(int serialNumber);
 };
 
 class ProcesException : public std::exception

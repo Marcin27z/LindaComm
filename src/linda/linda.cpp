@@ -32,4 +32,9 @@ namespace linda {
 
     Tuple read_linda(std::string pattern, int timeout) {
     }
+
+    void display_requests(){
+        proces.displayRequests();
+    }
+
 }

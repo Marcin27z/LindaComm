@@ -39,16 +39,22 @@ void example_ring() {
 int main() {
     linda::init_linda();
     int i;
-    std::cin >> i;
-    if (i == 2) {
-        std::cout << "trying to get tuple" << std::endl;
-        Tuple tuple = linda::input_linda("int = 1, int = 2, int = 3", 15);
-        std::cout << "linda_input zwrocila";
-        tuple.print();
-        std::cout << "finished" << std::endl;
-    } else if (i == 1) {
-        linda::output_linda(Tuple(1, 2, 3));
+
+    while(i) {
+        std::cin >> i;
+        if (i == 2) {
+            std::cout << "trying to get tuple" << std::endl;
+            Tuple tuple = linda::input_linda("int = 1, int = 2, int = 3", 15);
+            std::cout << "linda_input zwrocila";
+            tuple.print();
+            std::cout << "finished" << std::endl;
+        } else if (i == 1) {
+            linda::output_linda(Tuple(1, 2, 3));
+        } else if (i == 3) {
+            linda::display_requests();
+        }
     }
+
     linda::terminate_linda();
     return 0;
 }

@@ -229,7 +229,7 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
     auto trove = findTuple(tuplePattern);
     if (trove.first) {
         sendOwnTuple(request.id_sender, serialNumber);
-        std::cout << "fournd matching tuple ";
+        std::cout << "found matching tuple ";
         trove.second.print();
     } else if (request.id_sender != processId) {
         addRequest(tuplePattern, request.id_sender, serialNumber);
@@ -276,6 +276,7 @@ void Proces::handleGiveTuple(protocol::control_data &request) {
         //TODO: tutaj sprawdzenie czy chcieliśmy tę krotkę?
         // usunięcie krotki z requestów,
         // wypisanie krotki użytkownikowi?
+        removeRequest(serialNumber);
         std::cout << "got tuple ";
         tuple.print();
         tupleReady(tuple);
@@ -299,6 +300,23 @@ int Proces::openWrite(int id) {
 
 void Proces::put(Tuple tuple) {
     outTuples.push_back(tuple);
+    std::pair<bool, Tuple> result;
+    int serialNumber = -1;
+    for(const auto& i : requests)
+    {
+        std::string pattern = i.second.first;
+        result = findTuple(pattern);
+
+        if(result.first){
+            serialNumber = i.first;
+            break;
+        }
+    }
+    if(result.first)
+    {
+        sendOwnTuple(nextId, serialNumber);
+    }
+
 }
 
 Tuple Proces::getTuple(int timeout) {
@@ -437,6 +455,21 @@ Tuple Proces::readTupleFromRequest(int number, const std::string &tupleType, pro
 void Proces::addRequest(const std::string &request, int idSender, int serialNumber) {
     std::pair<std::string, int> requestInfo({request, idSender});
     requests.insert({serialNumber, requestInfo});
+    std::cout<<"Process "<<processId<<":-   added request: "<<request<<" from "<<idSender<<std::endl;
+}
+
+void Proces::removeRequest(int serialNumber)
+{
+    auto it = requests.find(serialNumber);
+    requests.erase(it);
+}
+
+void Proces::displayRequests() {
+    std::cout<<"Process "<<processId<<":-   requests:"<<std::endl;
+
+    for(const auto& i : requests){
+        std::cout<<"Process "<<processId<<":-  "<<i.second.first<<" from "<<i.second.second<<std::endl;
+    }
 }
 
 

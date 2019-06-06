@@ -64,7 +64,8 @@ void Proces::connectToMainPipe() {
             sendRequestConn(*new_structure.begin(), processId);
 
             nextPipePath = directory + "pipe_" + std::to_string(*(new_structure.end() - 2));
-            nextId = processId - 1;
+            nextId = *(new_structure.end() - 2)
+                    ;
         }
     }
     writeFd = open(nextPipePath.c_str(), O_RDWR);
@@ -116,11 +117,7 @@ std::vector<int> Proces::readMainPipe() {
 }
 
 void Proces::writeMainPipe(const std::vector<int> &new_structure) {
-    int x;
-    if (processId == 0) x = 998;
-    else if (processId == 1) x = 997;
-    else x = 996;
-    protocol::control_data structure(x);
+    protocol::control_data structure(999);
     structure.write_int(new_structure.size());
 
     for (int it : new_structure) {
@@ -286,6 +283,7 @@ void Proces::handleGiveTuple(protocol::control_data &request) {
 
 void Proces::handleRequestConn(protocol::control_data request) {
     int destId = request.read_int();
+    nextId = destId;
     close(writeFd); // TODO: czy tutaj close(writefd) czegoś nie zapsuje?
     writeFd = openWrite(destId);
 }
@@ -299,6 +297,7 @@ int Proces::openWrite(int id) {
 }
 
 void Proces::put(Tuple tuple) {
+    std::cout<<"Adding tuple..."<<std::endl;
     outTuples.push_back(tuple);
     std::pair<bool, Tuple> result;
     int serialNumber = -1;

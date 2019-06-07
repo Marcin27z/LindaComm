@@ -105,13 +105,13 @@ std::vector<int> Proces::readMainPipe() {
 
         int numberOfProcesses = structure_out.read_int();
 
-        std::cout << "Procesy:" << std::endl;
+//        std::cout << "Procesy:" << std::endl;
         for (int i = 0; i < numberOfProcesses; ++i) {
             int returned = structure_out.read_int();
-            std::cout << returned << std::endl;
+//            std::cout << returned << std::endl;
             structure_vec.push_back(returned);
         }
-        std::cout << "Koniec!" << std::endl;
+//        std::cout << "Koniec!" << std::endl;
     }
     return structure_vec;
 }
@@ -255,6 +255,8 @@ void Proces::handleAcceptTuple(protocol::control_data &request) {
 //        if(findRequest(serialNumber) >= 0)  // szukamy krotki
         sendGiveTuple(request.id_sender, serialNumber,
                       Tuple("tuple from process", processId));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+        std::cout<<"Tuple sent"<<std::endl;
+
     } else {
         request.write_int(serialNumber);
         forwardMessage(request);
@@ -469,6 +471,16 @@ void Proces::displayRequests() {
     for(const auto& i : requests){
         std::cout<<"Process "<<processId<<":-  "<<i.second.first<<" from "<<i.second.second<<std::endl;
     }
+}
+
+void Proces::displayRingState() {
+    std::vector<int> structure = readMainPipe();
+    std::cout<<"Current ring state: ";
+    for(auto i : structure){
+        std::cout<<i<<", ";
+    }
+    std::cout<<std::endl;
+    writeMainPipe(structure);
 }
 
 

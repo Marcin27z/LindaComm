@@ -53,6 +53,12 @@ int main() {
         } else if (i == 3) {
             linda::display_requests();
         }
+        else if(i==4){
+            linda::display_state();
+        }
+        else if(i==5){
+            linda::disconnect();
+        }
     }
 
     linda::terminate_linda();

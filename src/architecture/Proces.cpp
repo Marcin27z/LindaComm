@@ -118,7 +118,7 @@ std::vector<int> Proces::readMainPipe() {
 
 void Proces::writeMainPipe(const std::vector<int> &new_structure) {
     protocol::control_data structure(999);
-    structure.write_int(new_structure.size());
+    structure.write_int((int)new_structure.size());
 
     for (int it : new_structure) {
         structure.write_int(it);
@@ -142,7 +142,7 @@ void Proces::disconnect() {
         unlink(pipePath.c_str());
 
         auto it = std::find(structure.begin(), structure.end(), processId);
-        int index = std::distance(structure.begin(), it);
+        int index = (int)std::distance(structure.begin(), it);
 
         // jeśli obecny proces jest pierwszym w strukturze, należy wysłać wiadomość do ostatniego o podłączeniu się do drugiego
         if (index == 0) {

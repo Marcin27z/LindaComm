@@ -32,7 +32,7 @@ namespace protocol {
 
         int type = -1;
         uint buf_length = 0;
-        uint id_sender;
+        int id_sender;
         int id_recipient;
         std::vector<char> buffer;
 

@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include "Proces.h"
-#include "Proces.h"
 
 Proces::Proces(std::string directory_, int mainPipeSize_, int pipeSize_) :
         nextId(-1), mainFd(0), readFd(0), writeFd(0),

@@ -48,7 +48,7 @@ int main() {
         std::cin >> i;
         if (i == 2) {
             std::cout << "trying to get tuple" << std::endl;
-            Tuple tuple = linda::input_linda("int = 1, int = 2, int = 3", 15);
+            Tuple tuple = linda::input_linda("iii: ==1;==2;==3;", 15);
             std::cout << "linda_input zwrocila";
             tuple.print();
             std::cout << "finished" << std::endl;

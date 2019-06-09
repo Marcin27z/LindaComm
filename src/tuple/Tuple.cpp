@@ -125,3 +125,12 @@ Tuple::Tuple() {
 
 }
 
+bool Tuple::operator==(const Tuple &rhs) const {
+    return elements == rhs.elements &&
+           type == rhs.type;
+}
+
+bool Tuple::operator!=(const Tuple &rhs) const {
+    return !(rhs == *this);
+}
+

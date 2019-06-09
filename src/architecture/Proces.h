@@ -82,7 +82,8 @@ public:
     std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
     std::pair<bool,Tuple> findTuple(const std::string& tuplePattern);
 
-    int findRequest(int serialNumber);
+    bool findRequest(int serialNumber);
+    std::pair<std::string, int> getRequest(int);
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);

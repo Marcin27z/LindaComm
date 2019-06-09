@@ -225,6 +225,7 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
     std::cout << tuplePattern << std::endl;
     auto trove = findTuple(tuplePattern);
     if (trove.first) {
+        addRequest(tuplePattern, request.id_sender, serialNumber);
         sendOwnTuple(request.id_sender, serialNumber);
         std::cout << "found matching tuple ";
         trove.second.print();
@@ -240,7 +241,7 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
 void Proces::handleOwnTuple(protocol::control_data &request) {
     if (request.id_recipient == processId) {
         int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-        if (findRequest(serialNumber) >= 0)  // jeśli żądanie jest nadal aktualne
+        if (findRequest(serialNumber))  // jeśli żądanie jest nadal aktualne
             sendAcceptTuple(request.id_sender,
                             serialNumber);     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
     } else {
@@ -252,11 +253,13 @@ void Proces::handleAcceptTuple(protocol::control_data &request) {
     int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
     // TODO: Usuń request ze swojego wektora
     if (request.id_recipient == processId) {
-//        if(findRequest(serialNumber) >= 0)  // szukamy krotki
-        sendGiveTuple(request.id_sender, serialNumber,
-                      Tuple("tuple from process", processId));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
-        std::cout<<"Tuple sent"<<std::endl;
-
+        if (findRequest(serialNumber)) {
+            auto foundRequest = getRequest(serialNumber);
+            auto tuple = findTuple(foundRequest.first).second;
+            sendGiveTuple(request.id_sender, serialNumber,
+                          tuple);
+            std::cout<<"Tuple sent"<<std::endl;
+        }
     } else {
         request.write_int(serialNumber);
         forwardMessage(request);
@@ -424,17 +427,20 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
         }
     }
     request.send_msg(writeFd);
-    outTuples.clear();
+    outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple), outTuples.end());
 }
 
 void Proces::forwardMessage(protocol::control_data &request) {
     request.send_msg(writeFd);
 }
 
-int Proces::findRequest(int serialNumber) {
+bool Proces::findRequest(int serialNumber) {
     auto request = requests.find(serialNumber);
-    if (request != requests.end()) return 1;
-    return -1;
+    return request != requests.end();
+}
+
+std::pair<std::string, int> Proces::getRequest(int serialNumber) {
+    return requests.find(serialNumber)->second;
 }
 
 Tuple Proces::readTupleFromRequest(int number, const std::string &tupleType, protocol::control_data &data) {

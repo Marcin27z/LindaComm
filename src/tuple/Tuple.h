@@ -19,6 +19,7 @@ private:
 
 public:
 
+
     template<typename T, typename... Args>
     void addElement(T first, Args... args);
 
@@ -39,6 +40,10 @@ public:
     std::string getType();
 
     void print();
+
+    bool operator==(const Tuple &rhs) const;
+
+    bool operator!=(const Tuple &rhs) const;
 };
 
 template<typename... Args>

@@ -1,9 +1,13 @@
+#include <utility>
+
 //
 // Created by Marcin on 27.05.2019.
 //
 
 #include <iostream>
+#include <cstring>
 #include "Tuple.h"
+#include "../parser/Parser.h"
 
 size_t Tuple::getSize() {
     return elements.size();
@@ -15,14 +19,90 @@ TupleElement &Tuple::operator[](int position) {
 
 
 bool Tuple::matchPattern(std::string pattern) {
-//    size_t last = 0;
-//    size_t next = 0;
-//    std::string delimiter = ", ";
-//    while ((next = pattern.find(delimiter, last)) != std::string::npos) {
-//        std::cout << pattern.substr(last, next - last) << std::endl;
-//        last = next + 1;
-//    }
-//    std::cout << pattern.substr(last) << std::endl;
+    if(isBlocked()) return false;
+
+    Parser parser;
+    std::vector<Element *> result = parser.parse(std::move(pattern));
+    if (this->getSize() != result.size()) {
+        return false;
+    }
+    for (auto i = 0; i < elements.size(); ++i) {
+        if (elements[i].getType() == TupleElementType::STRING && result[i]->type == Element::Type::STRING) {
+            if (result[i]->specified) {
+                auto *sr = (String_Requirement *) result[i]->req;
+                std::string temp(elements[i].getStringValue());
+                if (sr->type == Requirement::GREATER_THAN) {
+                    if (temp.compare(sr->value) <= 0) {
+                        return false;
+                    }
+                } else if (sr->type == Requirement::LESS_THAN) {
+                    if (temp.compare(sr->value) >= 0) {
+                        return false;
+                    }
+                } else if (sr->type == Requirement::EQUAL) {
+                    if (temp != sr->value) {
+                        return false;
+                    }
+                } else if (sr->type == Requirement::GREATER_OR_EQUAL) {
+                    if (temp.compare(sr->value) < 0) {
+                        return false;
+                    }
+                } else {
+                    if (temp.compare(sr->value) > 0) {
+                        return false;
+                    }
+                }
+            }
+        } else if (elements[i].getType() == TupleElementType::INT && result[i]->type == Element::Type::INT) {
+            if (result[i]->specified)  {
+                auto *ir = (Int_Requirement *) result[i]->req;
+                if (ir->type == Requirement::GREATER_THAN) {
+                    if (elements[i].getIntValue() <= ir->value) {
+                        return false;
+                    }
+                } else if (ir->type == Requirement::LESS_THAN) {
+                    if (elements[i].getIntValue() >= ir->value) {
+                        return false;
+                    }
+                } else if (ir->type == Requirement::EQUAL) {
+                    if (elements[i].getIntValue() != ir->value) {
+                        return false;
+                    }
+                } else if (ir->type == Requirement::GREATER_OR_EQUAL) {
+                    if (elements[i].getIntValue() < ir->value) {
+                        return false;
+                    }
+                } else {
+                    if (elements[i].getIntValue() > ir->value) {
+                        return false;
+                    }
+                }
+            }
+        } else if (elements[i].getType() == TupleElementType::FLOAT && result[i]->type == Element::Type::FLOAT) {
+            if (result[i]->specified) {
+                auto *fr = (Int_Requirement *) result[i]->req;
+                if (fr->type == Requirement::GREATER_THAN) {
+                    if (elements[i].getIntValue() <= fr->value) {
+                        return false;
+                    }
+                } else if (fr->type == Requirement::LESS_THAN) {
+                    if (elements[i].getIntValue() >= fr->value) {
+                        return false;
+                    }
+                } else if (fr->type == Requirement::GREATER_OR_EQUAL) {
+                    if (elements[i].getIntValue() < fr->value) {
+                        return false;
+                    }
+                } else {
+                    if (elements[i].getIntValue() > fr->value) {
+                        return false;
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -43,7 +123,29 @@ void Tuple::print() {
     std::cout << std::endl;
 }
 
-Tuple::Tuple() {
+Tuple::Tuple(): serialNumber(-1) {
 
+}
+
+bool Tuple::operator==(const Tuple &rhs) const {
+    return elements == rhs.elements &&
+           type == rhs.type;
+}
+
+bool Tuple::operator!=(const Tuple &rhs) const {
+    return !(rhs == *this);
+}
+
+int Tuple::getSerialNumber() {
+    return serialNumber;
+}
+
+void Tuple::setSerialNumber(int serialNumber_) {
+    serialNumber = serialNumber_;
+}
+
+bool Tuple::isBlocked() {
+    if(serialNumber != -1) return true;
+    else return false;
 }
 

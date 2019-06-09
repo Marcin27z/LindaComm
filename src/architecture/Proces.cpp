@@ -10,6 +10,8 @@
 #include <cstring>
 #include <algorithm>
 #include <cstdlib>
+#include <chrono>
+#include <random>
 #include "Proces.h"
 
 Proces::Proces(std::string directory_, int mainPipeSize_, int pipeSize_) :
@@ -128,6 +130,8 @@ void Proces::writeMainPipe(const std::vector<int> &new_structure) {
 
 
 void Proces::disconnect() {
+    std::cout<<"Disconnecting! "<<pipePath<<std::endl;
+
     if ((mainFd = open(mainPipePath.c_str(), O_RDWR)) < 0) {
         throw ProcesException(
                 "opening main fifo failed: " + mainPipePath + ", " + strerror(errno) + ", cannot disconnect");
@@ -139,6 +143,7 @@ void Proces::disconnect() {
         unlink(mainPipePath.c_str());
     } else if (structure.size() > 1) {
 
+        std::cout<<"Unlinking "<<pipePath<<std::endl;
         unlink(pipePath.c_str());
 
         auto it = std::find(structure.begin(), structure.end(), processId);
@@ -146,18 +151,28 @@ void Proces::disconnect() {
 
         // jeśli obecny proces jest pierwszym w strukturze, należy wysłać wiadomość do ostatniego o podłączeniu się do drugiego
         if (index == 0) {
-            sendRequestConn(structure[structure.size() - 1], structure[1]);
+            std::cout<<"Send "<<structure[1]<<" to connect with "<<structure[structure.size() - 1]<<std::endl;
+
+            sendRequestConn(structure[1], structure[structure.size() - 1]);
         }
             // jeśli obecny proces jest ostatnim w strukturze, należy wysłać wiadomość do przedostatniego o podłączeniu się do pierwszego
         else if (index == structure.size() - 1) {
-            sendRequestConn(structure[index - 1], structure[0]);
+            std::cout<<"Send "<<structure[0]<<" to connect with "<<structure[index - 1]<<std::endl;
+
+            sendRequestConn(structure[0],structure[index - 1]);
         } else {
-            sendRequestConn(structure[index - 1], structure[index + 1]);
+            std::cout<<"Send "<<structure[index + 1]<<" to connect with "<<structure[index - 1]<<std::endl;
+
+            sendRequestConn(structure[index + 1], structure[index - 1]);
         }
 
         // uaktualnij strukturę w głównej kolejce
         structure.erase(it);
         writeMainPipe(structure);
+
+        close(writeFd);
+        close(readFd);
+        close(mainFd);
     }
 
 }
@@ -209,6 +224,9 @@ void Proces::handleRequests() {
             case 4:
                 handleRequestConn(request);
                 break;
+            case 5:
+                handleNotAcceptTuple(request);
+                break;
             default:
                 quitFlag = true;
                 break;
@@ -223,8 +241,10 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
     int tuplePatternSize = request.read_int();
     std::string tuplePattern = request.read_string(tuplePatternSize);
     std::cout << tuplePattern << std::endl;
-    auto trove = findTuple(tuplePattern);
+    auto trove = findTupleByPattern(tuplePattern);
     if (trove.first) {
+        addRequest(tuplePattern, request.id_sender, serialNumber);
+        trove.second.setSerialNumber(serialNumber);
         sendOwnTuple(request.id_sender, serialNumber);
         std::cout << "found matching tuple ";
         trove.second.print();
@@ -238,30 +258,56 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
 }
 
 void Proces::handleOwnTuple(protocol::control_data &request) {
+    std::cout<<"handleOwnTuple, recipient:"<<request.id_recipient<<std::endl;
+    int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
+
     if (request.id_recipient == processId) {
-        int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-        if (findRequest(serialNumber) >= 0)  // jeśli żądanie jest nadal aktualne
+        if (findRequest(serialNumber))  // jeśli żądanie jest nadal aktualne
             sendAcceptTuple(request.id_sender,
                             serialNumber);     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
+        else sendNotAcceptTuple(request.id_sender, serialNumber);
+
     } else {
+        std::cout<<"Forwarding"<<std::endl;
+        request.write_int(serialNumber);
         forwardMessage(request);
     }
 }
 
 void Proces::handleAcceptTuple(protocol::control_data &request) {
     int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-    // TODO: Usuń request ze swojego wektora
     if (request.id_recipient == processId) {
-//        if(findRequest(serialNumber) >= 0)  // szukamy krotki
-        sendGiveTuple(request.id_sender, serialNumber,
-                      Tuple("tuple from process", processId));     // wysłanie informacji do procesu, że nadal chcemy tę krotkę
-        std::cout<<"Tuple sent"<<std::endl;
-
+        if (findRequest(serialNumber)) {
+            auto foundRequest = getRequest(serialNumber);
+            auto tuple1 = findTupleBySerial(serialNumber).second;
+            sendGiveTuple(request.id_sender, serialNumber,
+                          tuple1);
+            std::cout<<"Tuple sent"<<std::endl;
+            removeRequest(serialNumber);
+        }
     } else {
         request.write_int(serialNumber);
         forwardMessage(request);
     }
 }
+void Proces::handleNotAcceptTuple(protocol::control_data &request) {
+    // jeśli request istnieje to go usuwamy
+    int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
+    if (request.id_recipient == processId) {
+        if (findRequest(serialNumber)) {
+            std::string pattern = getRequest(serialNumber).first;
+
+            auto trove = findTupleBySerial(serialNumber);
+            if(trove.first) if(trove.second.isBlocked()) trove.second.setSerialNumber(-1);
+            removeRequest(serialNumber);
+        }
+    } else {
+        request.write_int(serialNumber);
+        forwardMessage(request);
+    }
+}
+
+
 
 void Proces::handleGiveTuple(protocol::control_data &request) {
     if (request.id_recipient == processId) {
@@ -270,15 +316,15 @@ void Proces::handleGiveTuple(protocol::control_data &request) {
         std::string tupleType = request.read_string(
                 tupleTypeSize); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
 
-        Tuple tuple = readTupleFromRequest(serialNumber, tupleType, request);
+        Tuple tuple1 = readTupleFromRequest(serialNumber, tupleType, request);
 
         //TODO: tutaj sprawdzenie czy chcieliśmy tę krotkę?
         // usunięcie krotki z requestów,
         // wypisanie krotki użytkownikowi?
         removeRequest(serialNumber);
         std::cout << "got tuple ";
-        tuple.print();
-        tupleReady(tuple);
+        tuple1.print();
+        tupleReady(tuple1);
     } else
         forwardMessage(request);
 }
@@ -298,24 +344,25 @@ int Proces::openWrite(int id) {
     return fd;
 }
 
-void Proces::put(Tuple tuple) {
+void Proces::put(const Tuple& newTuple) {
     std::cout<<"Adding tuple..."<<std::endl;
-    outTuples.push_back(tuple);
+    outTuples.push_back(newTuple);
     std::pair<bool, Tuple> result;
     int serialNumber = -1;
+    int recipient = -1;
     for(const auto& i : requests)
     {
         std::string pattern = i.second.first;
-        result = findTuple(pattern);
+        result = findTupleByPattern(pattern);
 
         if(result.first){
             serialNumber = i.first;
+            recipient = i.second.second;
+            sendOwnTuple(i.second.second, serialNumber);
+            std::cout << i.second.second << std::endl;
+            result.second.setSerialNumber(serialNumber); // block tuple
             break;
         }
-    }
-    if(result.first)
-    {
-        sendOwnTuple(nextId, serialNumber);
     }
 
 }
@@ -358,15 +405,25 @@ void Proces::tupleReady(Tuple tuple) {
     pthread_mutex_unlock(&mutex);
 }
 
-std::pair<bool, Tuple> Proces::findTuple(const std::string &tuplePattern) {
+std::pair<bool, Tuple> Proces::findTupleByPattern(const std::string &tuplePattern) {
     /*   for(Tuple tuple : tuples) {
            if (tuple.matchPattern(tuplePattern)) {
                return tuple;
            }
        }*/
-    for (auto &&tuple: outTuples) {
-        if (tuple.matchPattern(tuplePattern)) {
-            return std::pair<bool, Tuple>({true, tuple});
+    for (auto &&tuple1: outTuples) {
+        if (tuple1.matchPattern(tuplePattern)) {
+            return std::pair<bool, Tuple>({true, tuple1});
+        }
+    }
+    return std::pair<bool, Tuple>({false, Tuple(nullptr)});
+}
+
+std::pair<bool, Tuple> Proces::findTupleBySerial(int serialNumber) {
+
+    for (auto &&tuple1: outTuples) {
+        if (tuple1.getSerialNumber() == serialNumber) {
+            return std::pair<bool, Tuple>({true, tuple1});
         }
     }
     return std::pair<bool, Tuple>({false, Tuple(nullptr)});
@@ -377,7 +434,10 @@ void Proces::sendRequestTuple(int destId, const std::string &tuplePattern) {
     request.id_sender = processId;
     request.id_recipient = destId;
 
-    int serialNumber = rand();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_int_distribution<int> distribution(0, 2147483647);
+    int serialNumber = distribution(generator);
     request.write_int(serialNumber);
     request.write_int(tuplePattern.size());
     request.write_string(tuplePattern);
@@ -405,6 +465,16 @@ void Proces::sendAcceptTuple(int destId, int serialNumber) {
     request.send_msg(writeFd);
 }
 
+void Proces::sendNotAcceptTuple(int destId, int serialNumber) {
+    protocol::control_data request(5);
+    request.id_sender = processId;
+    request.id_recipient = destId;
+
+    request.write_int(serialNumber);
+    request.send_msg(writeFd);
+}
+
+
 void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
     protocol::control_data request(3);
     request.id_sender = processId;
@@ -424,17 +494,20 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
         }
     }
     request.send_msg(writeFd);
-    outTuples.clear();
+    outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple), outTuples.end());
 }
 
 void Proces::forwardMessage(protocol::control_data &request) {
     request.send_msg(writeFd);
 }
 
-int Proces::findRequest(int serialNumber) {
+bool Proces::findRequest(int serialNumber) {
     auto request = requests.find(serialNumber);
-    if (request != requests.end()) return 1;
-    return -1;
+    return request != requests.end();
+}
+
+std::pair<std::string, int> Proces::getRequest(int serialNumber) {
+    return requests.find(serialNumber)->second;
 }
 
 Tuple Proces::readTupleFromRequest(int number, const std::string &tupleType, protocol::control_data &data) {

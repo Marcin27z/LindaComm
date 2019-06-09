@@ -23,9 +23,13 @@ public:
     TupleElementType getType();
 
 
-    const char *getStringValue();
-    int getIntValue();
-    float getFloatValue();
+    const char * getStringValue() const;
+    int getIntValue() const;
+    float getFloatValue() const;
+
+    bool operator==(const TupleElement &rhs) const;
+
+    bool operator!=(const TupleElement &rhs) const;
 };
 
 

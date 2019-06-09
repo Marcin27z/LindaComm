@@ -24,6 +24,7 @@ namespace protocol {
             accept_tuple,
             give_tuple,
             request_conn,
+            not_accept_tuple,
 
             unknown
         };

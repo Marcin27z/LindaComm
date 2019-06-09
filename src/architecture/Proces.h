@@ -49,6 +49,7 @@ class Proces: public Thread {
     void handleRequestTuple(protocol::control_data& request);
     void handleOwnTuple(protocol::control_data& request);
     void handleAcceptTuple(protocol::control_data& request);
+    void handleNotAcceptTuple(protocol::control_data& request);
     void handleGiveTuple(protocol::control_data& request);
     void handleRequestConn(protocol::control_data request);
 
@@ -56,6 +57,7 @@ class Proces: public Thread {
 
     void sendOwnTuple(int destId, int serialNumber);
     void sendAcceptTuple(int destId, int serialNumber);
+    void sendNotAcceptTuple(int destId, int serialNumber);
     void sendGiveTuple(int destId, int serialNumber,  Tuple tuple);
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
@@ -80,13 +82,15 @@ public:
     void createMainPipe();       // tworzy główną kolejkę
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
-    std::pair<bool,Tuple> findTuple(const std::string& tuplePattern);
+    std::pair<bool,Tuple> findTupleByPattern(const std::string& tuplePattern);
+    std::pair<bool,Tuple> findTupleBySerial(int serialNumber);
 
-    int findRequest(int serialNumber);
+    bool findRequest(int serialNumber);
+    std::pair<std::string, int> getRequest(int);
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
-    void put(Tuple);
+    void put(const Tuple &tuple1);
 
     void addRequest(const std::string& request, int idSender, int serialNumber);
     Tuple getTuple(int timeout);

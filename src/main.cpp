@@ -29,22 +29,26 @@ void one_process(std::string directory) {
 }
 
 void example_ring() {
-    std::string directory = "/home/fen/";
+    std::string directory = "/home/karol/";
     unlink((directory + "mainFIFO").c_str());
 
     one_process(directory);
+}
 
+void parserTest() {
+    Tuple tuple("ala ma kota", 12, 5.0f);
+    std::cout << (tuple.matchPattern("sif: *; >10; *;") ? "true" : "false") << std::endl;
 }
 
 int main() {
     linda::init_linda();
-    int i;
+    int i=1;
 
     while(i) {
         std::cin >> i;
         if (i == 2) {
             std::cout << "trying to get tuple" << std::endl;
-            Tuple tuple = linda::input_linda("int = 1, int = 2, int = 3", 15);
+            Tuple tuple = linda::input_linda("iii: ==1;==2;==3;", 30);
             std::cout << "linda_input zwrocila";
             tuple.print();
             std::cout << "finished" << std::endl;
@@ -58,9 +62,11 @@ int main() {
         }
         else if(i==5){
             linda::disconnect();
+            break;
         }
     }
 
     linda::terminate_linda();
+
     return 0;
 }

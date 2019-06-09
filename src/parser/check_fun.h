@@ -1,14 +1,15 @@
 #include "..\tuple\Tuple.h"
+#include "Parser.h"
 
 bool check(std::string s, Tuple t)
 {
 	Parser p;
-	vector<Element*> result = p.parse(s);
+	std::vector<Element*> result = p.parse(s);
 	if (t.getSize() != result.size())
 		return false;
-	for (int i = 0; i < result.size(), i++)
+	for (int i = 0; i < result.size(); ++i)
 	{
-		if (t[i].getType() == TupleElementType.STRING && result[i]->type == Element.STRING)
+		if (t[i].getType() == TupleElementType::STRING && result[i]->type == Element::Type::STRING)
 		{
 			if (!result[i]->specified)
 				return true;

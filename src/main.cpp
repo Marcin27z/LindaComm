@@ -33,7 +33,11 @@ void example_ring() {
     unlink((directory + "mainFIFO").c_str());
 
     one_process(directory);
+}
 
+void parserTest() {
+    Tuple tuple("ala ma kota", 12, 5.0f);
+    std::cout << (tuple.matchPattern("sif: *; >10; *;") ? "true" : "false") << std::endl;
 }
 
 int main() {
@@ -62,5 +66,6 @@ int main() {
     }
 
     linda::terminate_linda();
+
     return 0;
 }

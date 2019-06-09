@@ -1,4 +1,4 @@
-#include "pch.h"
+//#include "pch.h"
 #include <iostream>
 #include "Parser.h"
 
@@ -165,7 +165,7 @@ void Parser::parse_string(std::string s, int &position, std::vector<Element*> &v
 			return;
 		}
 		else
-			throw new Parser_Exception("Brak odpowiedniego formatu przy float requirement");
+			throw new Parser_Exception("Brak odpowiedniego formatu przy string requirement");
 	}
 	type = parse_symbol(s, position);
 

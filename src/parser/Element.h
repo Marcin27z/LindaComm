@@ -2,6 +2,11 @@
 #include "Requirement.h"
 
 // Klasa reprezentujaca jeden element zadanej krotki
+// type - typ danej: int, float, string
+// specified - czy dodatkowe wymagania co do wartosci zostaly wprowadzone
+// 	false : równoznaczne z '*'
+// 	true : wprowadzono wymagania np. > 5, =="ret", ...
+// req - wskaznik na obiekt reprezentujacy wymagania co do wartosci(jesli specified jest rowne false: req jest rowne nullptr)
 class Element
 {
 public:

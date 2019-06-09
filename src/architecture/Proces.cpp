@@ -10,6 +10,7 @@
 #include <cstring>
 #include <algorithm>
 #include <cstdlib>
+#include <chrono>
 #include "Proces.h"
 
 Proces::Proces(std::string directory_, int mainPipeSize_, int pipeSize_) :
@@ -264,7 +265,6 @@ void Proces::handleOwnTuple(protocol::control_data &request) {
 
 void Proces::handleAcceptTuple(protocol::control_data &request) {
     int serialNumber = request.read_int(); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
-    // TODO: Usuń request ze swojego wektora
     if (request.id_recipient == processId) {
         if (findRequest(serialNumber)) {
             auto foundRequest = getRequest(serialNumber);
@@ -272,6 +272,7 @@ void Proces::handleAcceptTuple(protocol::control_data &request) {
             sendGiveTuple(request.id_sender, serialNumber,
                           tuple);
             std::cout<<"Tuple sent"<<std::endl;
+            removeRequest(serialNumber);
         }
     } else {
         request.write_int(serialNumber);
@@ -326,13 +327,15 @@ void Proces::put(Tuple tuple) {
 
         if(result.first){
             serialNumber = i.first;
+            sendOwnTuple(i.second.second, serialNumber);
+            std::cout << i.second.second << std::endl;
             break;
         }
     }
-    if(result.first)
-    {
-        sendOwnTuple(nextId, serialNumber);
-    }
+//    if(result.first)
+//    {
+//        sendOwnTuple(nextId, serialNumber);
+//    }
 
 }
 
@@ -393,7 +396,10 @@ void Proces::sendRequestTuple(int destId, const std::string &tuplePattern) {
     request.id_sender = processId;
     request.id_recipient = destId;
 
-    int serialNumber = rand();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_int_distribution<int> distribution(0, 2147483647);
+    int serialNumber = distribution(generator);
     request.write_int(serialNumber);
     request.write_int(tuplePattern.size());
     request.write_string(tuplePattern);

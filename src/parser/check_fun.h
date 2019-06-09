@@ -1,3 +1,5 @@
+#include "..\tuple\Tuple.h"
+
 bool check(std::string s, Tuple t)
 {
 	Parser p;

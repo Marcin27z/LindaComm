@@ -42,6 +42,16 @@ float control_data::read_float() {
     return result;
 }
 
+long control_data::read_long() {
+    long result;
+    std::memcpy(&result, &buffer[0], sizeof(long));
+    buffer.erase(buffer.begin(), buffer.begin() + sizeof(long));
+
+    buf_length -= sizeof(long);
+
+    return result;
+}
+
 std::string control_data::read_string(int length) {
     std::string result(buffer.begin(), buffer.begin() + length);
     buffer.erase(buffer.begin(), buffer.begin() + length);
@@ -63,6 +73,13 @@ void control_data::write_float(float f) {
     buffer.insert(buffer.end(), element, element + sizeof(float));
 
     buf_length += sizeof(float);
+}
+
+void control_data::write_long(long l) {
+    const char* element = static_cast<char*>(static_cast<void*>(&l));
+    buffer.insert(buffer.end(), element, element + sizeof(long));
+
+    buf_length += sizeof(long);
 }
 
 void control_data::write_string(std::string s) {

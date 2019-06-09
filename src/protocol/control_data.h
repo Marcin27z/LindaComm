@@ -43,11 +43,13 @@ namespace protocol {
         int read_int();
         float read_float();
         std::string read_string(int);
+        long read_long();
 
         // Functions used to write values to message
         void write_int(int);
         void write_float(float);
         void write_string(std::string);
+        void write_long(long);
 
         int send_msg(int);
         int send_fifo_msg(int);

@@ -29,7 +29,7 @@ void one_process(std::string directory) {
 }
 
 void example_ring() {
-    std::string directory = "/home/fen/";
+    std::string directory = "/home/karol/";
     unlink((directory + "mainFIFO").c_str());
 
     one_process(directory);
@@ -42,7 +42,7 @@ void parserTest() {
 
 int main() {
     linda::init_linda();
-    int i;
+    int i=1;
 
     while(i) {
         std::cin >> i;
@@ -62,6 +62,7 @@ int main() {
         }
         else if(i==5){
             linda::disconnect();
+            break;
         }
     }
 

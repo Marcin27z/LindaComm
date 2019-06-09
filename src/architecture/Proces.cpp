@@ -128,6 +128,8 @@ void Proces::writeMainPipe(const std::vector<int> &new_structure) {
 
 
 void Proces::disconnect() {
+    std::cout<<"Disconnecting! "<<pipePath<<std::endl;
+
     if ((mainFd = open(mainPipePath.c_str(), O_RDWR)) < 0) {
         throw ProcesException(
                 "opening main fifo failed: " + mainPipePath + ", " + strerror(errno) + ", cannot disconnect");
@@ -139,6 +141,7 @@ void Proces::disconnect() {
         unlink(mainPipePath.c_str());
     } else if (structure.size() > 1) {
 
+        std::cout<<"Unlinking "<<pipePath<<std::endl;
         unlink(pipePath.c_str());
 
         auto it = std::find(structure.begin(), structure.end(), processId);
@@ -146,18 +149,28 @@ void Proces::disconnect() {
 
         // jeśli obecny proces jest pierwszym w strukturze, należy wysłać wiadomość do ostatniego o podłączeniu się do drugiego
         if (index == 0) {
-            sendRequestConn(structure[structure.size() - 1], structure[1]);
+            std::cout<<"Send "<<structure[1]<<" to connect with "<<structure[structure.size() - 1]<<std::endl;
+
+            sendRequestConn(structure[1], structure[structure.size() - 1]);
         }
             // jeśli obecny proces jest ostatnim w strukturze, należy wysłać wiadomość do przedostatniego o podłączeniu się do pierwszego
         else if (index == structure.size() - 1) {
-            sendRequestConn(structure[index - 1], structure[0]);
+            std::cout<<"Send "<<structure[0]<<" to connect with "<<structure[index - 1]<<std::endl;
+
+            sendRequestConn(structure[0],structure[index - 1]);
         } else {
-            sendRequestConn(structure[index - 1], structure[index + 1]);
+            std::cout<<"Send "<<structure[index + 1]<<" to connect with "<<structure[index - 1]<<std::endl;
+
+            sendRequestConn(structure[index + 1], structure[index - 1]);
         }
 
         // uaktualnij strukturę w głównej kolejce
         structure.erase(it);
         writeMainPipe(structure);
+
+        close(writeFd);
+        close(readFd);
+        close(mainFd);
     }
 
 }

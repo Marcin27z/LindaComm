@@ -66,8 +66,7 @@ void Proces::connectToMainPipe() {
             sendRequestConn(*new_structure.begin(), processId);
 
             nextPipePath = directory + "pipe_" + std::to_string(*(new_structure.end() - 2));
-            nextId = *(new_structure.end() - 2)
-                    ;
+            nextId = *(new_structure.end() - 2);
         }
     }
     writeFd = open(nextPipePath.c_str(), O_RDWR);
@@ -107,13 +106,10 @@ std::vector<int> Proces::readMainPipe() {
 
         int numberOfProcesses = structure_out.read_int();
 
-//        std::cout << "Procesy:" << std::endl;
         for (int i = 0; i < numberOfProcesses; ++i) {
             int returned = structure_out.read_int();
-//            std::cout << returned << std::endl;
             structure_vec.push_back(returned);
         }
-//        std::cout << "Koniec!" << std::endl;
     }
     return structure_vec;
 }
@@ -257,6 +253,8 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
         forwardMessage(request);
     }
 }
+
+
 
 void Proces::handleOwnTuple(protocol::control_data &request) {
     std::cout<<"handleOwnTuple, recipient:"<<request.id_recipient<<std::endl;
@@ -428,17 +426,23 @@ std::pair<bool, Tuple> Proces::findTupleBySerial(int serialNumber) {
     return std::pair<bool, Tuple>({false, Tuple(nullptr)});
 }
 
-void Proces::sendRequestTuple(int destId, const std::string &tuplePattern, int timeout) {
+void Proces::sendRequestTuple(int destId, const std::string &tuplePattern, int timeout, bool isRead) {
     protocol::control_data request(0);
     request.id_sender = processId;
     request.id_recipient = destId;
+    int serialNumber;
     request.expirationDate = std::chrono::duration_cast<std::chrono::milliseconds>
                     (std::chrono::system_clock::now().time_since_epoch()).count() + timeout * 1000;
 
     long long seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
-    std::uniform_int_distribution<int> distribution(0, 2147483647);
-    int serialNumber = distribution(generator);
+    std::uniform_int_distribution<int> distribution(0, 2147483647/2);
+
+    if(isRead) // jeśli tylko czytamy krotkę, serialNumber będzie parzysty
+        serialNumber = distribution(generator)*2;
+    else       // jeśli pobieramy krotkę, serialNumber będzie nieparzysty
+        serialNumber = distribution(generator)*2 + 1;
+
     request.write_int(serialNumber);
     request.write_int(tuplePattern.size());
     request.write_string(tuplePattern);
@@ -447,6 +451,7 @@ void Proces::sendRequestTuple(int destId, const std::string &tuplePattern, int t
 
     addRequest(tuplePattern, processId, serialNumber, request.expirationDate); // TODO
 }
+
 
 void Proces::sendOwnTuple(int destId, int serialNumber) {
     protocol::control_data request(1);
@@ -495,7 +500,11 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
         }
     }
     request.send_msg(writeFd);
-    outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple), outTuples.end());
+
+    // jeśli numer seryjny zapytania jest nieparzysty, to znaczy, że proces chce ją pobrać, a więc ją usuwamy
+    if(serialNumber%2 != 0)
+        outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple), outTuples.end());
+    // w przeciwnym wypadku, gdy numer jest parzysty, proces chce ją tylko przeczytać, a więc jej nie usuwamy
 }
 
 void Proces::forwardMessage(protocol::control_data &request) {
@@ -568,6 +577,16 @@ void Proces::displayRingState() {
     std::cout<<std::endl;
     writeMainPipe(structure);
 }
+
+void Proces::displayTuples() {
+    std::cout<<"Displaying tuples:"<<std::endl;
+    for(auto tuple_: outTuples){
+        tuple.print(); std::cout<<std::endl;
+    }
+    std::cout<<"Displaying tuples ended"<<std::endl;
+
+}
+
 
 ProcesException::ProcesException(const std::string &msg) : info("Process Exception: " + msg) {
 

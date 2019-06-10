@@ -75,7 +75,7 @@ public:
     explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
     ~Proces();
     void handleRequests();  // pobiera request z kolejki procesu i wywołuje odpowiednią metodę do jego obsługi
-    void sendRequestTuple(int destId, const std::string &tuplePattern, int timeout);
+    void sendRequestTuple(int destId, const std::string &tuplePattern, int timeout, bool isRead);
 
     void run() override;
     void connect();       // podłącza obecny proces do pierścienia
@@ -100,6 +100,7 @@ public:
 
     void displayRequests();
     void displayRingState();
+    void displayTuples();
     void removeRequest(int serialNumber);
 };
 

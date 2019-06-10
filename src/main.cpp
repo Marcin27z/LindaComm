@@ -66,19 +66,22 @@ int main() {
         tokens = splitBySpace(input);
 
         if (tokens[0] == "input") {
+            if (tokens.size() < 2) {
+                std::cout << "Incorrect command" << std::endl;
+            }
+            std::cout << "trying to get a tuple..." << std::endl;
+            Tuple tuple = linda::input_linda(tokens[1], 30);
+        } else if (tokens[0] == "read") {
             if(tokens.size() < 2) {
                 std::cout<<"Incorrect command"<<std::endl;
             }
-            std::cout << "trying to get tuple" << std::endl;
+            std::cout << "trying to get a tuple..." << std::endl;
             Tuple tuple = linda::input_linda(tokens[1], 30);
-            std::cout << "linda_input zwrocila";
-            tuple.print();
-            std::cout << "finished" << std::endl;
         } else if (tokens[0] == "output") {
             if(tokens[1] == "1")
                 linda::output_linda(Tuple(1, 2, 3));
             else if(tokens[1] == "2")
-                linda::output_linda(Tuple(1.01, 13.37, 9.997));
+                linda::output_linda(Tuple(1.01f, 13.37f, 9.997f));
             else if(tokens[1] == "3")
                 linda::output_linda(Tuple("tuple", 5, 3.01));
             else std::cout<<"Incorrect command"<<std::endl;
@@ -87,6 +90,9 @@ int main() {
         }
         else if(input == "display_state"){
             linda::display_state();
+        }
+        else if(input == "display_tuples"){
+            linda::display_tuples();
         }
         else if(input == "disconnect"){
             linda::disconnect();

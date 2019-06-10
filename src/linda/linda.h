@@ -9,6 +9,8 @@
 #include "../tuple/Tuple.h"
 #include "../architecture/Proces.h"
 
+#define LINDA_READ 1
+#define LINDA_INPUT 0
 
 namespace linda {
 
@@ -24,6 +26,7 @@ namespace linda {
 
     void display_requests();
     void display_state();
+    void display_tuples();
     void disconnect();
 }
 

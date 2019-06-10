@@ -60,7 +60,7 @@ class Proces: public Thread {
     void sendOwnTuple(int destId, int serialNumber);
     void sendAcceptTuple(int destId, int serialNumber);
     void sendNotAcceptTuple(int destId, int serialNumber);
-    void sendGiveTuple(int destId, int serialNumber,  Tuple tuple);
+    void sendGiveTuple(int destId, int serialNumber,  Tuple &tuple);
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
     // metoda do przekazywania dalej wiadomości

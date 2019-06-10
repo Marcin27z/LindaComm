@@ -482,22 +482,22 @@ void Proces::sendNotAcceptTuple(int destId, int serialNumber) {
 }
 
 
-void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
+void Proces::sendGiveTuple(int destId, int serialNumber, Tuple &tuple_) {
     protocol::control_data request(3);
     request.id_sender = processId;
     request.id_recipient = destId;
 
     request.write_int(serialNumber);
-    request.write_int(tuple.getType().size());
-    request.write_string(tuple.getType());
-    for (int i = 0; i < tuple.getSize(); ++i) {
-        if (tuple[i].getType() == STRING) {
-            request.write_int(strlen(tuple[i].getStringValue()));
-            request.write_string(tuple[i].getStringValue());
-        } else if (tuple[i].getType() == INT) {
-            request.write_int(tuple[i].getIntValue());
+    request.write_int(tuple_.getType().size());
+    request.write_string(tuple_.getType());
+    for (int i = 0; i < tuple_.getSize(); ++i) {
+        if (tuple_[i].getType() == STRING) {
+            request.write_int(strlen(tuple_[i].getStringValue()));
+            request.write_string(tuple_[i].getStringValue());
+        } else if (tuple_[i].getType() == INT) {
+            request.write_int(tuple_[i].getIntValue());
         } else {
-            request.write_float(tuple[i].getFloatValue());
+            request.write_float(tuple_[i].getFloatValue());
         }
     }
     request.send_msg(writeFd);
@@ -505,6 +505,9 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple tuple) {
     // jeśli numer seryjny zapytania jest nieparzysty, to znaczy, że proces chce ją pobrać, a więc ją usuwamy
     if(serialNumber%2 != 0)
         outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple), outTuples.end());
+    else{
+        tuple_.setSerialNumber(-1); // unlock the tuple
+    }
     // w przeciwnym wypadku, gdy numer jest parzysty, proces chce ją tylko przeczytać, a więc jej nie usuwamy
 }
 

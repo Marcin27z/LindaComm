@@ -34,7 +34,7 @@ namespace linda {
     }
 
     Tuple input_linda(std::string pattern, int timeout) {
-        proces.sendRequestTuple(-1, pattern, timeout);
+        proces.sendRequestTuple(-1, pattern, timeout, LINDA_INPUT);
         return proces.getTuple(timeout);
     }
 

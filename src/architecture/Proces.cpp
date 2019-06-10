@@ -239,12 +239,12 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
     std::cout << tuplePattern << std::endl;
     auto trove = findTuple(tuplePattern);
     if (trove.first) {
-        addRequest(tuplePattern, request.id_sender, serialNumber);
+        addRequest(tuplePattern, request.id_sender, serialNumber, request.expirationDate);
         sendOwnTuple(request.id_sender, serialNumber);
         std::cout << "found matching tuple ";
         trove.second.print();
     } else if (request.id_sender != processId) {
-        addRequest(tuplePattern, request.id_sender, serialNumber);
+        addRequest(tuplePattern, request.id_sender, serialNumber, request.expirationDate);
         request.write_int(serialNumber);
         request.write_int(tuplePatternSize);
         request.write_string(tuplePattern);
@@ -327,8 +327,8 @@ void Proces::put(Tuple tuple) {
 
         if(result.first){
             serialNumber = i.first;
-            sendOwnTuple(i.second.second, serialNumber);
-            std::cout << i.second.second << std::endl;
+            sendOwnTuple(i.second.second.first, serialNumber);
+            std::cout << i.second.second.first << std::endl;
             break;
         }
     }
@@ -391,12 +391,14 @@ std::pair<bool, Tuple> Proces::findTuple(const std::string &tuplePattern) {
     return std::pair<bool, Tuple>({false, Tuple(nullptr)});
 }
 
-void Proces::sendRequestTuple(int destId, const std::string &tuplePattern) {
+void Proces::sendRequestTuple(int destId, const std::string &tuplePattern, int timeout) {
     protocol::control_data request(0);
     request.id_sender = processId;
     request.id_recipient = destId;
+    request.expirationDate = std::chrono::duration_cast<std::chrono::milliseconds>
+                    (std::chrono::system_clock::now().time_since_epoch()).count() + timeout * 1000;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    long long seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> distribution(0, 2147483647);
     int serialNumber = distribution(generator);
@@ -406,7 +408,7 @@ void Proces::sendRequestTuple(int destId, const std::string &tuplePattern) {
 
     request.send_msg(writeFd);
 
-    addRequest(tuplePattern, processId, serialNumber); // TODO
+    addRequest(tuplePattern, processId, serialNumber, request.expirationDate); // TODO
 }
 
 void Proces::sendOwnTuple(int destId, int serialNumber) {
@@ -454,11 +456,17 @@ void Proces::forwardMessage(protocol::control_data &request) {
 }
 
 bool Proces::findRequest(int serialNumber) {
+    for (auto &request: requests) {
+        if (request.second.second.second < std::chrono::duration_cast<std::chrono::milliseconds>
+                            (std::chrono::system_clock::now().time_since_epoch()).count()) {
+            requests.erase(request.first);
+        }
+    }
     auto request = requests.find(serialNumber);
     return request != requests.end();
 }
 
-std::pair<std::string, int> Proces::getRequest(int serialNumber) {
+std::pair<std::string, std::pair<int, long long>> Proces::getRequest(int serialNumber) {
     return requests.find(serialNumber)->second;
 }
 
@@ -478,11 +486,13 @@ Tuple Proces::readTupleFromRequest(int number, const std::string &tupleType, pro
     return tuple;
 }
 
-void Proces::addRequest(const std::string &request, int idSender, int serialNumber) {
-    std::pair<std::string, int> requestInfo({request, idSender});
+void Proces::addRequest(const std::string &request, int idSender, int serialNumber, long long expirationDate) {
+    std::pair<int, long long> metadata({idSender, expirationDate});
+    std::pair<std::string, std::pair<int, long long>> requestInfo({request, metadata});
     requests.insert({serialNumber, requestInfo});
     std::cout<<"Process "<<processId<<":-   added request: "<<request<<" from "<<idSender<<std::endl;
 }
+
 
 void Proces::removeRequest(int serialNumber)
 {
@@ -494,7 +504,7 @@ void Proces::displayRequests() {
     std::cout<<"Process "<<processId<<":-   requests:"<<std::endl;
 
     for(const auto& i : requests){
-        std::cout<<"Process "<<processId<<":-  "<<i.second.first<<" from "<<i.second.second<<std::endl;
+        std::cout<<"Process "<<processId<<":-  "<<i.second.first<<" from "<<i.second.second.first<<std::endl;
     }
 }
 

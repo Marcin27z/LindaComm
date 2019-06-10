@@ -13,13 +13,14 @@ namespace linda {
     Proces proces("/home/eliot/pipe/");
 
     void init_linda() {
-        proces.start();
-        sleep(1);
+            proces.start();
+            sleep(1);
     }
 
     void terminate_linda() {
-        proces.disconnect();
+//        proces.disconnect();
         proces.cancel();
+        proces.join();
     }
 
     void output_linda(Tuple tuple) {
@@ -30,9 +31,7 @@ namespace linda {
         proces.sendRequestTuple(-1, pattern, timeout);
         return proces.getTuple(timeout);
     }
-    void disconnect(){
-        proces.disconnect();
-    }
+
     void display_state(){
         proces.displayRingState();
     }

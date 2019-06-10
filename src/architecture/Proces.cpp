@@ -181,7 +181,7 @@ void Proces::disconnect() {
 
 Proces::~Proces() {
     disconnect();
-    unlink(pipePath.c_str());
+//    unlink(pipePath.c_str());
 }
 
 void Proces::sendRequestConn(int destId, int newId) {

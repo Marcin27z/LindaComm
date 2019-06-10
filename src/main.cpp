@@ -89,7 +89,6 @@ int main() {
             linda::display_state();
         }
         else if(input == "disconnect"){
-            linda::disconnect();
             break;
         }
         else std::cout<<"Incorrect command"<<std::endl;

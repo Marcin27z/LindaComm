@@ -588,10 +588,8 @@ void Proces::displayRingState() {
 void Proces::displayTuples() {
     std::cout<<"Displaying tuples:"<<std::endl;
     for(auto tuple_: outTuples){
-        tuple.print(); std::cout<<std::endl;
+        tuple_.print(); std::cout<<std::endl;
     }
-    std::cout<<"Displaying tuples ended"<<std::endl;
-
 }
 
 

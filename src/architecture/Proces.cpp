@@ -240,7 +240,10 @@ void Proces::handleRequestTuple(protocol::control_data &request) {
     std::string tuplePattern = request.read_string(tuplePatternSize);
     std::cout << tuplePattern << std::endl;
     auto trove = findTupleByPattern(tuplePattern);
+    std::cout<<"RequestTuple"<<std::endl;
     if (trove.first) {
+        std::cout<<"RequestTuple"<<std::endl;
+
         trove.second.setSerialNumber(serialNumber);
         addRequest(tuplePattern, request.id_sender, serialNumber, request.expirationDate);
         sendOwnTuple(request.id_sender, serialNumber);
@@ -504,7 +507,7 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple &tuple_) {
 
     // jeśli numer seryjny zapytania jest nieparzysty, to znaczy, że proces chce ją pobrać, a więc ją usuwamy
     if(serialNumber%2 != 0)
-        outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple), outTuples.end());
+        outTuples.erase(std::remove(outTuples.begin(), outTuples.end(), tuple_), outTuples.end());
     else{
         tuple_.setSerialNumber(-1); // unlock the tuple
     }

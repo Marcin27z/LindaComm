@@ -46,6 +46,7 @@ void Proces::connectToMainPipe() {
 
         // utwórz własną kolejkę
         createPipe();
+        nextPipePath = pipePath;
     }
         // jeśli istnieje
     else {

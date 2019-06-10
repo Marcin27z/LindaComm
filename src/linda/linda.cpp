@@ -14,9 +14,11 @@ namespace linda {
 
     void init_linda() {
         proces.start();
+        sleep(1);
     }
 
     void terminate_linda() {
+        proces.disconnect();
         proces.cancel();
     }
 
@@ -25,7 +27,6 @@ namespace linda {
     }
 
     Tuple input_linda(std::string pattern, int timeout) {
-        sleep(1);
         proces.sendRequestTuple(-1, pattern, timeout);
         return proces.getTuple(timeout);
     }

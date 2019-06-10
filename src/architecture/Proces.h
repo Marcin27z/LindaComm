@@ -15,6 +15,8 @@
 #define PERM 0777
 
 class Proces: public Thread {
+
+    Tuple nullTuple;
     bool quitFlag = false;
 
     int nextId;
@@ -32,7 +34,7 @@ class Proces: public Thread {
     protocol::manager manager;
 
     //std::vector<std::string> requests; // TODO: przechowywanie requestów
-    std::map<int, std::pair<std::string, int>> requests;
+    std::map<int, std::pair<std::string, std::pair<int, long long>>> requests;
 
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -73,7 +75,7 @@ public:
     explicit Proces(std::string directory, int mainPipeSize_ = 0, int pipeSize_ = 0);
     ~Proces();
     void handleRequests();  // pobiera request z kolejki procesu i wywołuje odpowiednią metodę do jego obsługi
-    void sendRequestTuple(int destId, const std::string &tuplePattern);
+    void sendRequestTuple(int destId, const std::string &tuplePattern, int timeout);
 
     void run() override;
     void connect();       // podłącza obecny proces do pierścienia
@@ -82,17 +84,18 @@ public:
     void createMainPipe();       // tworzy główną kolejkę
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
-    std::pair<bool,Tuple> findTupleByPattern(const std::string& tuplePattern);
+    std::pair<bool,Tuple&> findTupleByPattern(const std::string& tuplePattern);
     std::pair<bool,Tuple> findTupleBySerial(int serialNumber);
 
+    void refreshRequests();
     bool findRequest(int serialNumber);
-    std::pair<std::string, int> getRequest(int);
+    std::pair<std::string, std::pair<int, long long>> getRequest(int);
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
     void put(const Tuple &tuple1);
 
-    void addRequest(const std::string& request, int idSender, int serialNumber);
+    void addRequest(const std::string& request, int idSender, int serialNumber, long long expirationDate);
     Tuple getTuple(int timeout);
 
     void displayRequests();

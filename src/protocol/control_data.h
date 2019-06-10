@@ -33,8 +33,9 @@ namespace protocol {
 
         int type = -1;
         uint buf_length = 0;
-        uint id_sender;
+        int id_sender;
         int id_recipient;
+        long long expirationDate;
         std::vector<char> buffer;
 
         Type get_type(int) const;
@@ -43,11 +44,14 @@ namespace protocol {
         int read_int();
         float read_float();
         std::string read_string(int);
+        long long read_long();
 
         // Functions used to write values to message
         void write_int(int);
         void write_float(float);
+        void write_long(long long);
         void write_string(std::string);
+        void write_long(long);
 
         int send_msg(int);
         int send_fifo_msg(int);
@@ -81,6 +85,7 @@ namespace protocol {
             size_t remaining_fifo_msg_size(int);
 
             uint pop_int(int);
+            long long  pop_long(int);
 
         public:
             bool assemble(int);

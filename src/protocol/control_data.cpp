@@ -42,6 +42,16 @@ float control_data::read_float() {
     return result;
 }
 
+long long control_data::read_long() {
+    long long result;
+    std::memcpy(&result, &buffer[0], sizeof(long long));
+    buffer.erase(buffer.begin(), buffer.begin() + sizeof(long long));
+
+    buf_length -= sizeof(long long);
+
+    return result;
+}
+
 std::string control_data::read_string(int length) {
     std::string result(buffer.begin(), buffer.begin() + length);
     buffer.erase(buffer.begin(), buffer.begin() + length);
@@ -63,6 +73,13 @@ void control_data::write_float(float f) {
     buffer.insert(buffer.end(), element, element + sizeof(float));
 
     buf_length += sizeof(float);
+}
+
+void control_data::write_long(long long l) {
+    const char* element = static_cast<char*>(static_cast<void*>(&l));
+    buffer.insert(buffer.end(), element, element + sizeof(long long));
+
+    buf_length += sizeof(long long);
 }
 
 void control_data::write_string(std::string s) {
@@ -92,12 +109,17 @@ int control_data::send_msg(int dst) {
         return -1;
     }
 
+    if(write(dst, &expirationDate, sizeof(expirationDate)) < 0) {
+        std::cerr << "Unsuccessful wrtie (expirationDate)" << std::endl;
+        return -1;
+    }
+
     if(write(dst, &buffer[0], buf_length) < 0) {
         std::cerr << "Unsuccessful write (body)" << std::endl;
         return -1;
     }
 
-    return buf_length + 4*sizeof(int);
+    return buf_length + 4*sizeof(int)+ sizeof(long long);
 }
 
 int control_data::send_fifo_msg(int dst) {
@@ -123,16 +145,25 @@ uint manager::pop_int(int fd) {
     return result;
 }
 
+long long manager::pop_long(int fd) {
+    long long result;
+    std::memcpy(&result, &buffers[fd][0], sizeof(long long));
+
+    buffers[fd].erase(buffers[fd].begin(), buffers[fd].begin() + sizeof(long long));
+
+    return result;
+}
+
 bool manager::is_cd_ready(int fd) {
-    return buffers[fd].size() >= 4*sizeof(int);
+    return buffers[fd].size() >= 4*sizeof(int) + sizeof(long long);
 }
 
 size_t manager::expected_cd_size(int fd) {
-    if(!is_cd_ready(fd)) return 4*sizeof(int);
+    if(!is_cd_ready(fd)) return 4*sizeof(int) + sizeof(long long);
 
     int length;
     std::memcpy(&length, &buffers[fd][0], sizeof(int));
-    return 4*sizeof(int) + length;
+    return 4*sizeof(int) + sizeof(long long) + length;
 }
 
 size_t manager::remaining_cd_size(int fd) {
@@ -141,13 +172,13 @@ size_t manager::remaining_cd_size(int fd) {
 
 bool manager::assemble(int fd) {
     if(!is_cd_ready(fd)) {
-        std::vector<char> buffer(4*sizeof(int) - buffers[fd].size());
+        std::vector<char> buffer(4*sizeof(int) + sizeof(long long) - buffers[fd].size());
         //int mainReadFd;
         //std::string mainPipePath = "/home/karol/mainFIFO";
 
 //        if(( mainReadFd= open(mainPipePath.c_str(), O_RDWR)) < 0){}
 
-        read_result = read(fd, &buffer[0], 4*sizeof(int) - buffers[fd].size());
+        read_result = read(fd, &buffer[0], 4*sizeof(int) + sizeof(long long) - buffers[fd].size());
         if(read_result == -1) return false;
         buffers[fd].insert(buffers[fd].end(), buffer.begin(), buffer.begin() + read_result);
 
@@ -167,6 +198,7 @@ bool manager::assemble(int fd) {
     msg.type = pop_int(fd);
     msg.id_sender = pop_int(fd);
     msg.id_recipient = pop_int(fd);
+    msg.expirationDate = pop_long(fd);
     msg.buffer = std::vector<char>(buffers[fd].begin(), buffers[fd].begin() + msg.buf_length);
 
     buffers[fd].clear();

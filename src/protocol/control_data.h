@@ -24,6 +24,7 @@ namespace protocol {
             accept_tuple,
             give_tuple,
             request_conn,
+            not_accept_tuple,
 
             unknown
         };
@@ -32,7 +33,7 @@ namespace protocol {
 
         int type = -1;
         uint buf_length = 0;
-        uint id_sender;
+        int id_sender;
         int id_recipient;
         long long expirationDate;
         std::vector<char> buffer;
@@ -42,14 +43,15 @@ namespace protocol {
         // Functions used to read values from message
         int read_int();
         float read_float();
-        float read_long();
         std::string read_string(int);
+        long long read_long();
 
         // Functions used to write values to message
         void write_int(int);
         void write_float(float);
         void write_long(long long);
         void write_string(std::string);
+        void write_long(long);
 
         int send_msg(int);
         int send_fifo_msg(int);

@@ -19,6 +19,8 @@ TupleElement &Tuple::operator[](int position) {
 
 
 bool Tuple::matchPattern(std::string pattern) {
+    if(isBlocked()) return false;
+
     Parser parser;
     std::vector<Element *> result = parser.parse(std::move(pattern));
     if (this->getSize() != result.size()) {
@@ -121,7 +123,7 @@ void Tuple::print() {
     std::cout << std::endl;
 }
 
-Tuple::Tuple() {
+Tuple::Tuple(): serialNumber(-1) {
 
 }
 
@@ -132,5 +134,18 @@ bool Tuple::operator==(const Tuple &rhs) const {
 
 bool Tuple::operator!=(const Tuple &rhs) const {
     return !(rhs == *this);
+}
+
+int Tuple::getSerialNumber() {
+    return serialNumber;
+}
+
+void Tuple::setSerialNumber(int serialNumber_) {
+    serialNumber = serialNumber_;
+}
+
+bool Tuple::isBlocked() {
+    if(serialNumber != -1) return true;
+    else return false;
 }
 

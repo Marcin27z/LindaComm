@@ -16,6 +16,7 @@ public:
 private:
     std::vector<TupleElement> elements;
     std::string type;
+    int serialNumber; // jeśli różny od -1, to oznacza że krotka jest zablokowana
 
 public:
 
@@ -41,13 +42,19 @@ public:
 
     void print();
 
+    void setSerialNumber(int serialNumber);
+
+    int getSerialNumber();
+
+    bool isBlocked();
+
     bool operator==(const Tuple &rhs) const;
 
     bool operator!=(const Tuple &rhs) const;
 };
 
 template<typename... Args>
-Tuple::Tuple(Args... args) {
+Tuple::Tuple(Args... args):serialNumber(-1) {
     addElement(args...);
 }
 

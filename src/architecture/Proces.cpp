@@ -46,6 +46,7 @@ void Proces::connectToMainPipe() {
 
         // utwórz własną kolejkę
         createPipe();
+        nextPipePath = pipePath;
     }
         // jeśli istnieje
     else {
@@ -176,7 +177,7 @@ void Proces::disconnect() {
 
 Proces::~Proces() {
     disconnect();
-    unlink(pipePath.c_str());
+//    unlink(pipePath.c_str());
 }
 
 void Proces::sendRequestConn(int destId, int newId) {

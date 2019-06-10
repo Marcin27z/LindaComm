@@ -13,11 +13,14 @@ namespace linda {
     Proces proces("/home/eliot/pipe/");
 
     void init_linda() {
-        proces.start();
+            proces.start();
+            sleep(1);
     }
 
     void terminate_linda() {
+//        proces.disconnect();
         proces.cancel();
+        proces.join();
     }
 
     Tuple read_linda(std::string pattern, int timeout) {
@@ -31,13 +34,10 @@ namespace linda {
     }
 
     Tuple input_linda(std::string pattern, int timeout) {
-        sleep(1);
-        proces.sendRequestTuple(-1, pattern, timeout, LINDA_INPUT);
+        proces.sendRequestTuple(-1, pattern, timeout);
         return proces.getTuple(timeout);
     }
-    void disconnect(){
-        proces.disconnect();
-    }
+
     void display_state(){
         proces.displayRingState();
     }

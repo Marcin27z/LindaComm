@@ -95,7 +95,6 @@ int main() {
             linda::display_tuples();
         }
         else if(input == "disconnect"){
-            linda::disconnect();
             break;
         }
         else std::cout<<"Incorrect command"<<std::endl;

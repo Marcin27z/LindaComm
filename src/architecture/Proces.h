@@ -85,7 +85,7 @@ public:
     void createPipe(int size = 0);  // tworzy kolejkę dla obecnego procesu
     std::vector<int> readMainPipe();  // zwraca wektor id procesów obecnych w pierścieniu
     std::pair<bool,Tuple&> findTupleByPattern(const std::string& tuplePattern);
-    std::pair<bool,Tuple> findTupleBySerial(int serialNumber);
+    std::pair<bool,Tuple&> findTupleBySerial(int serialNumber);
 
     void refreshRequests();
     bool findRequest(int serialNumber);

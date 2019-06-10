@@ -279,7 +279,7 @@ void Proces::handleAcceptTuple(protocol::control_data &request) {
     if (request.id_recipient == processId) {
         if (findRequest(serialNumber)) {
             auto foundRequest = getRequest(serialNumber);
-            auto tuple1 = findTupleBySerial(serialNumber).second;
+            auto &tuple1 = findTupleBySerial(serialNumber).second;
             sendGiveTuple(request.id_sender, serialNumber,
                           tuple1);
             std::cout<<"Tuple sent"<<std::endl;
@@ -417,14 +417,14 @@ std::pair<bool, Tuple&> Proces::findTupleByPattern(const std::string &tuplePatte
     return std::pair<bool, Tuple&>({false, nullTuple});
 }
 
-std::pair<bool, Tuple> Proces::findTupleBySerial(int serialNumber) {
+std::pair<bool, Tuple&> Proces::findTupleBySerial(int serialNumber) {
 
     for (auto &&tuple1: outTuples) {
         if (tuple1.getSerialNumber() == serialNumber) {
-            return std::pair<bool, Tuple>({true, tuple1});
+            return std::pair<bool, Tuple&>({true, tuple1});
         }
     }
-    return std::pair<bool, Tuple>({false, Tuple(nullptr)});
+    return std::pair<bool, Tuple&>({false, nullTuple});
 }
 
 void Proces::sendRequestTuple(int destId, const std::string &tuplePattern, int timeout, bool isRead) {

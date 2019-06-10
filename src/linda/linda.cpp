@@ -10,7 +10,7 @@
 #include "../architecture/Proces.h"
 
 namespace linda {
-    Proces proces("/home/eliot/pipe/");
+    Proces proces("/home/karol/");
 
     void init_linda() {
             proces.start();

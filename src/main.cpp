@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <thread>
+#include <sstream>
 #include "tuple/Tuple.h"
 #include "architecture/Proces.h"
 #include "linda/linda.h"
@@ -40,30 +41,58 @@ void parserTest() {
     std::cout << (tuple.matchPattern("sif: *; >10; *;") ? "true" : "false") << std::endl;
 }
 
+std::vector<std::string> splitBySpace(const std::string &input)
+{
+    std::string buf;
+    std::stringstream ss(input);
+
+    std::vector<std::string> tokens;
+
+    while (ss >> buf)
+        tokens.push_back(buf);
+
+    return tokens;
+}
+
 int main() {
     linda::init_linda();
     int i=1;
+    std::string input;
+    std::vector<std::string> tokens;
 
-    while(i) {
-        std::cin >> i;
-        if (i == 2) {
+    while(input != "exit") {
+        getline(std::cin, input);
+
+        tokens = splitBySpace(input);
+
+        if (tokens[0] == "input") {
+            if(tokens.size() < 2) {
+                std::cout<<"Incorrect command"<<std::endl;
+            }
             std::cout << "trying to get tuple" << std::endl;
-            Tuple tuple = linda::input_linda("iii: ==1;==2;==3;", 30);
+            Tuple tuple = linda::input_linda(tokens[1], 30);
             std::cout << "linda_input zwrocila";
             tuple.print();
             std::cout << "finished" << std::endl;
-        } else if (i == 1) {
-            linda::output_linda(Tuple(1, 2, 3));
-        } else if (i == 3) {
+        } else if (tokens[0] == "output") {
+            if(tokens[1] == "1")
+                linda::output_linda(Tuple(1, 2, 3));
+            else if(tokens[1] == "2")
+                linda::output_linda(Tuple(1.01, 13.37, 9.997));
+            else if(tokens[1] == "3")
+                linda::output_linda(Tuple("tuple", 5, 3.01));
+            else std::cout<<"Incorrect command"<<std::endl;
+        } else if (input == "display_requests") {
             linda::display_requests();
         }
-        else if(i==4){
+        else if(input == "display_state"){
             linda::display_state();
         }
-        else if(i==5){
+        else if(input == "disconnect"){
             linda::disconnect();
             break;
         }
+        else std::cout<<"Incorrect command"<<std::endl;
     }
 
     linda::terminate_linda();

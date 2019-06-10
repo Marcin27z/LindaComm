@@ -141,6 +141,7 @@ void Proces::disconnect() {
     // jeśli obecny proces jest jedynym, należy wysadzić główną kolejkę w powietrze
     if (structure.size() == 1) {
         unlink(mainPipePath.c_str());
+        unlink(pipePath.c_str());
     } else if (structure.size() > 1) {
 
         std::cout<<"Unlinking "<<pipePath<<std::endl;
@@ -306,8 +307,6 @@ void Proces::handleNotAcceptTuple(protocol::control_data &request) {
         forwardMessage(request);
     }
 }
-
-
 
 void Proces::handleGiveTuple(protocol::control_data &request) {
     if (request.id_recipient == processId) {

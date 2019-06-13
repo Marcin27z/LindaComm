@@ -7,26 +7,26 @@ std::vector<Element*> Parser::parse(std::string s) {
 
 	std::string temp;
 	bool flag = false;
-	for(int i : s) {
-		if (s[i] == '"') {
+	for(auto i : s) {
+		if (i == '"') {
 			flag = !flag;
-			temp += s[i];
+			temp += i;
 		}
 		else if(flag)
-			temp += s[i];
-		else if(!isspace(s[i]))
-			temp += s[i];
+			temp += i;
+		else if(!isspace(i))
+			temp += i;
 	}
 	s = temp;
 
 	int position = 0;
 	main = parse_main(s, position);
-	for(int i : main) {
-		if (main[i] == 'i')
+	for(auto i : main) {
+		if (i == 'i')
 			parse_int(s, position, result);
-		else if (main[i] == 'f')
+		else if (i == 'f')
 			parse_float(s, position, result);
-		else if (main[i] == 's')
+		else if (i == 's')
 			parse_string(s, position, result);
 	}
 	return result;
@@ -34,7 +34,7 @@ std::vector<Element*> Parser::parse(std::string s) {
 
 std::string Parser::parse_main(std::string s, int& position) {
 	std::string result;
-	for(int i : s) {
+	for(auto i = 0; i < s.size(); ++i) {
 		if(s[i] == 'i' || s[i] == 'f' || s[i] == 's')
 			result += s[i];
 		else if(s[i] == ':') {

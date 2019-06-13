@@ -682,7 +682,7 @@ void Proces::removeRequest(int serialNumber) {
 
 void Proces::displayRequests() {
     std::cout<<"Process "<<processId<<":-   requests:"<<std::endl;
-
+    refreshRequests();
     for(const auto& i : requests)
         std::cout<<"Process "<<processId<<":-  "<<i.second.first<<" from "<<i.second.second.first<<std::endl;
 }

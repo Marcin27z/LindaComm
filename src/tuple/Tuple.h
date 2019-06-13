@@ -31,6 +31,7 @@ public:
 
     bool matchPattern(std::string);
     void print();
+    std::string toString();
 
     size_t getSize() { return elements.size(); }
 

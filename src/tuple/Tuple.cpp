@@ -97,3 +97,17 @@ void Tuple::print() {
     }
     std::cout << std::endl;
 }
+
+std::string Tuple::toString() {
+    std::string s;
+    for(int i = 0; i < getSize(); ++i) {
+        if (elements[i].getType() == STRING)
+            s += elements[i].getStringValue();
+        else if (elements[i].getType() == INT)
+            s += std::to_string(elements[i].getIntValue());
+        else
+            s += std::to_string(elements[i].getFloatValue());
+        s += " ";
+    }
+    return s;
+}

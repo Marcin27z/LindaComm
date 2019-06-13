@@ -43,28 +43,27 @@ namespace protocol {
         // Functions used to read values from message
         int read_int();
         float read_float();
-        std::string read_string(int);
         long long read_long();
+        std::string read_string(int);
 
         // Functions used to write values to message
         void write_int(int);
         void write_float(float);
         void write_long(long long);
         void write_string(std::string);
-        void write_long(long);
 
         int send_msg(int);
         int send_fifo_msg(int);
 
         control_data() = default;
-        explicit control_data(int t): type(t), id_sender(0), id_recipient(0) {}
+        explicit control_data(int t): type(t), id_sender(0), id_recipient(0), expirationDate(0) {}
 
-        control_data(char*b, uint bl): buf_length(bl), id_sender(0), id_recipient(0) {
+        control_data(char*b, uint bl): buf_length(bl), id_sender(0), id_recipient(0), expirationDate(0) {
             buffer = std::vector<char>(b, b+bl);
         }
 
-        control_data(int t, char* b, uint bl, uint id_s, int id_r = -1):
-        type(t), buf_length(bl), id_sender(id_s), id_recipient(id_r) {
+        control_data(int t, char* b, uint bl, uint id_s, int id_r = -1, long long ed = 0):
+        type(t), buf_length(bl), id_sender(id_s), id_recipient(id_r), expirationDate(ed) {
             buffer = std::vector<char>(b, b+bl);
         }
     };
@@ -84,8 +83,8 @@ namespace protocol {
             size_t expected_fifo_msg_size(int);
             size_t remaining_fifo_msg_size(int);
 
-            uint pop_int(int);
-            long long  pop_long(int);
+            int pop_int(int);
+            long long pop_long(int);
 
         public:
             bool assemble(int);

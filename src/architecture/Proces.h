@@ -44,9 +44,6 @@ class Proces: public Thread {
     std::vector<Tuple> outTuples;
     Tuple tuple = Tuple(0);
 
-
-
-
     // metody do obsługi zapytań od innych procesów
     void handleRequestTuple(protocol::control_data& request);
     void handleOwnTuple(protocol::control_data& request);
@@ -56,7 +53,6 @@ class Proces: public Thread {
     void handleRequestConn(protocol::control_data request);
 
     // metody do wysyłania zapytań do innych procesów
-
     void sendOwnTuple(int destId, int serialNumber);
     void sendAcceptTuple(int destId, int serialNumber);
     void sendNotAcceptTuple(int destId, int serialNumber);
@@ -64,7 +60,6 @@ class Proces: public Thread {
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
 
     // metoda do przekazywania dalej wiadomości
-
     void forwardMessage(protocol::control_data& request);
 
     // metoda do otwierania do zapisu kolejek procesów
@@ -89,7 +84,7 @@ public:
 
     void refreshRequests();
     bool findRequest(int serialNumber);
-    std::pair<std::string, std::pair<int, long long>> getRequest(int);
+    std::pair<std::string, std::pair<int, long long>> getRequest(int srNum) { return requests.find(srNum)->second; }
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki
     Tuple readTupleFromRequest(int number, const std::string& tupleType, protocol::control_data &data);
@@ -104,13 +99,12 @@ public:
     void removeRequest(int serialNumber);
 };
 
-class ProcesException : public std::exception
-{
+class ProcessException : public std::exception {
     const std::string info;
 
 public:
-    explicit ProcesException(const std::string& msg);
-    const char* what() const noexcept override;
+    explicit ProcessException(const std::string& msg) : info("Process Exception: " + msg) {}
+    const char* what() const noexcept override { return info.c_str(); }
 };
 
 

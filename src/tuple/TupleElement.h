@@ -5,7 +5,6 @@
 #ifndef UXP1A_TUPLEELEMENT_H
 #define UXP1A_TUPLEELEMENT_H
 
-
 #include "TupleElementType.h"
 
 class TupleElement {
@@ -16,25 +15,20 @@ private:
         int intValue;
         float floatValue;
     } value;
+
 public:
     TupleElement(TupleElementType, const char *);
     TupleElement(TupleElementType, int);
     TupleElement(TupleElementType, float);
-    TupleElementType getType();
+    TupleElementType getType() {  return type; }
 
-
-    const char * getStringValue() const;
-    int getIntValue() const;
-    float getFloatValue() const;
+    const char * getStringValue() const { return value.stringValue; }
+    int getIntValue() const { return value.intValue; }
+    float getFloatValue() const { return value.floatValue; }
 
     bool operator==(const TupleElement &rhs) const;
 
-    bool operator!=(const TupleElement &rhs) const;
+    bool operator!=(const TupleElement &rhs) const { return !(rhs == *this); }
 };
-
-
-
-
-
 
 #endif //UXP1A_TUPLEELEMENT_H

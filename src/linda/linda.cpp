@@ -1,24 +1,22 @@
-#include <utility>
-#include <future>
-
 //
 // Created by Marcin on 05.06.2019.
 //
 
+#include <utility>
+#include <future>
 #include "linda.h"
 #include "../thread/SynchronizedQueue.h"
 #include "../architecture/Proces.h"
 
 namespace linda {
-    Proces proces("/home/karol/");
 
     void init_linda() {
-            proces.start();
-            sleep(1);
+        proces.start();
+        sleep(1);
     }
 
     void terminate_linda() {
-//        proces.disconnect();
+        //proces.disconnect();
         proces.cancel();
         proces.join();
     }
@@ -30,7 +28,7 @@ namespace linda {
     }
 
     void output_linda(Tuple tuple) {
-        proces.put(std::move(tuple));
+        proces.put(tuple);
     }
 
     Tuple input_linda(std::string pattern, int timeout) {

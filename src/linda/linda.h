@@ -1,7 +1,3 @@
-//
-// Created by Fen on 29.05.2019.
-//
-
 #ifndef LINDA_H
 #define LINDA_H
 
@@ -13,6 +9,8 @@
 #define LINDA_INPUT 0
 
 namespace linda {
+
+    static Proces proces("/home/fen/");
 
     void init_linda();
 

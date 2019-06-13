@@ -95,22 +95,22 @@ int control_data::send_msg(int dst) {
     }
 
     if(write(dst, &type, sizeof(type)) < 0) {
-        std::cerr << "Unsuccessful wrtie (msg type)" << std::endl;
+        std::cerr << "Unsuccessful write (msg type)" << std::endl;
         return -1;
     }
 
     if(write(dst, &id_sender, sizeof(id_sender)) < 0) {
-        std::cerr << "Unsuccessful wrtie (sender id)" << std::endl;
+        std::cerr << "Unsuccessful write (sender id)" << std::endl;
         return -1;
     }
 
     if(write(dst, &id_recipient, sizeof(id_recipient)) < 0) {
-        std::cerr << "Unsuccessful wrtie (recipient id)" << std::endl;
+        std::cerr << "Unsuccessful write (recipient id)" << std::endl;
         return -1;
     }
 
     if(write(dst, &expirationDate, sizeof(expirationDate)) < 0) {
-        std::cerr << "Unsuccessful wrtie (expirationDate)" << std::endl;
+        std::cerr << "Unsuccessful write (expirationDate)" << std::endl;
         return -1;
     }
 
@@ -136,8 +136,8 @@ int control_data::send_fifo_msg(int dst) {
     return buf_length + sizeof(int);
 }
 
-uint manager::pop_int(int fd) {
-    uint result;
+int manager::pop_int(int fd) {
+    int result;
     std::memcpy(&result, &buffers[fd][0], sizeof(int));
 
     buffers[fd].erase(buffers[fd].begin(), buffers[fd].begin() + sizeof(int));
@@ -173,11 +173,6 @@ size_t manager::remaining_cd_size(int fd) {
 bool manager::assemble(int fd) {
     if(!is_cd_ready(fd)) {
         std::vector<char> buffer(4*sizeof(int) + sizeof(long long) - buffers[fd].size());
-        //int mainReadFd;
-        //std::string mainPipePath = "/home/karol/mainFIFO";
-
-//        if(( mainReadFd= open(mainPipePath.c_str(), O_RDWR)) < 0){}
-
         read_result = read(fd, &buffer[0], 4*sizeof(int) + sizeof(long long) - buffers[fd].size());
         if(read_result == -1) return false;
         buffers[fd].insert(buffers[fd].end(), buffer.begin(), buffer.begin() + read_result);

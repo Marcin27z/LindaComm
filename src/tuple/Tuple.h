@@ -11,8 +11,6 @@
 #include "TupleElement.h"
 
 class Tuple {
-public:
-
 private:
     std::vector<TupleElement> elements;
     std::string type;
@@ -20,41 +18,39 @@ private:
 
 public:
 
-
     template<typename T, typename... Args>
     void addElement(T first, Args... args);
 
     template<typename T>
     void addElement(T v);
 
-    Tuple();
+    Tuple() : serialNumber(-1) {}
 
     template<typename... Args>
     explicit Tuple(Args... args);
 
-    size_t getSize();
-
-    TupleElement &operator[](int);
-
     bool matchPattern(std::string);
-
-    std::string getType();
-
     void print();
 
-    void setSerialNumber(int serialNumber);
+    size_t getSize() { return elements.size(); }
 
-    int getSerialNumber();
+    TupleElement &operator[](int position) { return elements[position]; }
 
-    bool isBlocked();
+    std::string getType() { return type; }
 
-    bool operator==(const Tuple &rhs) const;
+    void setSerialNumber(int serialNumber_) { serialNumber = serialNumber_; }
 
-    bool operator!=(const Tuple &rhs) const;
+    int getSerialNumber() { return serialNumber; }
+
+    bool isBlocked() { return serialNumber != -1; }
+
+    bool operator==(const Tuple &rhs) const { return elements == rhs.elements && type == rhs.type; }
+
+    bool operator!=(const Tuple &rhs) const { return !(rhs == *this); }
 };
 
 template<typename... Args>
-Tuple::Tuple(Args... args):serialNumber(-1) {
+Tuple::Tuple(Args... args) : serialNumber(-1) {
     addElement(args...);
 }
 
@@ -66,22 +62,19 @@ void Tuple::addElement(T v) {
 template<>
 inline void Tuple::addElement<int>(int v) {
     type.append("i");
-    TupleElement tupleElement(INT, v);
-    elements.push_back(tupleElement);
+    elements.emplace_back(TupleElement(INT, v));
 }
 
 template<>
 inline void Tuple::addElement<float>(float v) {
     type.append("f");
-    TupleElement tupleElement(FLOAT, v);
-    elements.push_back(tupleElement);
+    elements.emplace_back(TupleElement(FLOAT, v));
 }
 
 template<>
 inline void Tuple::addElement<const char *>(const char *v) {
     type.append("s");
-    TupleElement tupleElement(STRING, v);
-    elements.push_back(tupleElement);
+    elements.emplace_back(TupleElement(STRING, v));
 }
 
 template<typename T, typename... Args>
@@ -89,6 +82,5 @@ void Tuple::addElement(T first, Args... args) {
     addElement(first);
     addElement(args...);
 }
-
 
 #endif //UXP1A_TUPLE_H

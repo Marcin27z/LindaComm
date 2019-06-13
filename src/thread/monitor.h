@@ -118,7 +118,6 @@ public:
             enter();
     }
 
-
 private:
     Semaphore s;
 };

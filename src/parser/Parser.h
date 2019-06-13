@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PARSER_H
+#define PARSER_H
+
 #include "Element.h"
 #include <vector>
 #include <string>
@@ -13,21 +15,24 @@
 // 
 // Ograniczenia: <, >, <=, >=, ==
 
-class Parser
-{
-public:
-	std::vector<Element*> parse(std::string s);
+class Parser {
 private:
 	std::string parse_main(std::string s, int& position);
 	void parse_int(std::string s, int &position, std::vector<Element*> &vec);
 	void parse_float(std::string s, int &position, std::vector<Element*> &vec);
 	void parse_string(std::string s, int &position, std::vector<Element*> &vec);
 	Requirement::Type parse_symbol(std::string s, int &position);
+
+public:
+	std::vector<Element*> parse(std::string s);
 };
 
-class Parser_Exception
-{
+class Parser_Exception : public std::exception {
+	const std::string info;
+
 public:
-	std::string message;
-	Parser_Exception(std::string m) : message(m) {};
+	explicit Parser_Exception(const std::string& msg) : info("Parser Exception: " + msg) {}
+	const char* what() const noexcept override { return info.c_str(); }
 };
+
+#endif

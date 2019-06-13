@@ -17,7 +17,6 @@ private:
     } value;
 
 public:
-    TupleElement(TupleElement& element) : type(element.getType()), value(element.getValue()) {}
     TupleElement(TupleElementType, const char *);
     TupleElement(TupleElementType, int);
     TupleElement(TupleElementType, float);

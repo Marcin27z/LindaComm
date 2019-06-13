@@ -6,13 +6,15 @@
 #include <future>
 #include "linda.h"
 #include "../thread/SynchronizedQueue.h"
-#include "../architecture/Proces.h"
 
 namespace linda {
+
+    static Proces proces("/home/fen/");
 
     void init_linda() {
         proces.start();
         sleep(1);
+        proces.getInterface().manageInput();
     }
 
     void terminate_linda() {

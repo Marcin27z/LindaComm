@@ -10,8 +10,6 @@
 
 namespace linda {
 
-    static Proces proces("/home/fen/");
-
     void init_linda();
 
     void terminate_linda();

@@ -40,10 +40,8 @@ void parserTest() {
 }
 
 int main(int argc, char* argv[]) {
-    linda::init_linda();
     int i=1;
-    
-    linda::proces.interface.manageInput();
+    linda::init_linda();
 
     linda::terminate_linda();
 

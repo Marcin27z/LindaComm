@@ -112,6 +112,8 @@ public:
     void displayRingState();
     void displayTuples();
     void removeRequest(int serialNumber);
+
+    ProcessInterface getInterface() { return interface; }
 };
 
 class ProcessException : public std::exception {

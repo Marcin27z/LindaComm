@@ -17,6 +17,7 @@ private:
     } value;
 
 public:
+    TupleElement(TupleElement& element) : type(element.getType()), value(element.getValue()) {}
     TupleElement(TupleElementType, const char *);
     TupleElement(TupleElementType, int);
     TupleElement(TupleElementType, float);
@@ -25,6 +26,7 @@ public:
     const char * getStringValue() const { return value.stringValue; }
     int getIntValue() const { return value.intValue; }
     float getFloatValue() const { return value.floatValue; }
+    Value getValue() const { return value; }
 
     bool operator==(const TupleElement &rhs) const;
 

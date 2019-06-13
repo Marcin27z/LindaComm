@@ -7,17 +7,32 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include "../protocol/control_data.h"
+#include "../linda/linda.h"
 #include "../thread/Thread.h"
 #include "../tuple/Tuple.h"
 #include "../thread/SynchronizedQueue.h"
 
 #define PERM 0777
 
-class Proces: public Thread {
+class ProcessInterface {
+private:
+    std::string input;
+    std::vector<std::string> tokens;
 
+public:
+    ProcessInterface() = default;
+
+    void manageInput();
+    std::vector<std::string> splitBySpace(const std::string&);
+
+};
+
+class Proces: public Thread {
     Tuple nullTuple;
     bool quitFlag = false;
+    ProcessInterface interface;
 
     int nextId;
     int mainFd;
@@ -106,6 +121,5 @@ public:
     explicit ProcessException(const std::string& msg) : info("Process Exception: " + msg) {}
     const char* what() const noexcept override { return info.c_str(); }
 };
-
 
 #endif //UXP1A_PROCES_H

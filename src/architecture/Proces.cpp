@@ -15,6 +15,101 @@
 #include <dirent.h>
 #include "Proces.h"
 
+void ProcessInterface::manageInput() {
+    while(input != "exit") {
+        getline(std::cin, input);
+
+        tokens = splitBySpace(input);
+        if(tokens.empty()) continue;
+
+        if(tokens[0] == "input") {
+            if(tokens.size() < 2) {
+                std::cout << "Incorrect command" << std::endl;
+                continue;
+            }
+            std::cout << "trying to get a tuple..." << std::endl;
+            Tuple tuple = linda::input_linda(tokens[1], 30);
+        }
+        else if(tokens[0] == "read") {
+            if(tokens.size() < 2) {
+                std::cout << "Incorrect command" << std::endl;
+                continue;
+            }
+            std::cout << "trying to get a tuple..." << std::endl;
+            Tuple tuple = linda::read_linda(tokens[1], 30);
+        }
+        else if(tokens[0] == "output") {
+            if(tokens.size() < 2) {
+                std::cout << "Incorrect command" << std::endl;
+                continue;
+            }
+            Tuple tuple;
+            for(int i = 1; i < tokens.size(); i++) {
+                if(tokens[i][tokens[i].size()-1] == 'f') {
+                    try {
+                        std::string text(tokens[i].begin(), tokens[i].end()-1);
+                        float value = std::stof(text);
+                        tuple.addElement(value);
+                    }
+                    catch(...) {
+                        tuple.addElement(tokens[i].c_str());
+                    }
+                }
+                else {
+                    try {
+                        int value = std::stoi(tokens[i]);
+                        tuple.addElement(value);
+                    }
+                    catch(...) {
+                        tuple.addElement(tokens[i].c_str());
+                    }
+                }
+            }
+            linda::output_linda(tuple);
+//            if(tokens[1] == "1")
+//                linda::output_linda(Tuple(1, 2, 3));
+//            else if(tokens[1] == "2")
+//                linda::output_linda(Tuple(1.01f, 13.37f, 9.997f));
+//            else if(tokens[1] == "3")
+//                linda::output_linda(Tuple("tuple", 5, 3.01));
+//            else std::cout<<"Incorrect command"<<std::endl;
+        }
+        else if(input == "help") {
+            std::cout << "HELP" << std::endl;
+            std::cout << "\tinput tuple - Prośba o zadaną krotkę. Argument tuple określa rodzaj krotki, o którą proces prosi." << std::endl;
+            std::cout << "\tread tuple - Prośba o odczyt zadanej krotki. Argument tuple określa rodzaj krotki, o którą proces prosi." << std::endl;
+            std::cout << "\toutput tuple - Dodanie krotki do przestrzeni krotek.";
+            std::cout << " Argument tuple jest ciągiem elementów składowych rozdzielonych spacjami." << std::endl;
+            std::cout << "\thelp - Wyświetlenie tej informacji." << std::endl;
+            std::cout << "\tdisplay_requests - Wyświetlenie oczekujących żądań." << std::endl;
+            std::cout << "\tdisplay_state - Wyświetlenie stanu, w którym znajduje się proces." << std::endl;
+            std::cout << "\tdisplay_tuples - Wyświetlenie posiadanych krotek procesu." << std::endl;
+            std::cout << "\tdisconnect - Rozłączenie procesu z przestrzeni krotek." << std::endl;
+        }
+        else if (input == "display_requests")
+            linda::display_requests();
+        else if(input == "display_state")
+            linda::display_state();
+        else if(input == "display_tuples")
+            linda::display_tuples();
+        else if(input == "disconnect")
+            break;
+        else std::cout<<"Incorrect command"<<std::endl;
+    }
+}
+
+std::vector<std::string> ProcessInterface::splitBySpace(const std::string &input) {
+    std::string buf;
+    std::stringstream ss(input);
+
+    std::vector<std::string> tokens;
+
+    while(ss >> buf)
+        tokens.push_back(buf);
+
+    return tokens;
+}
+
 Proces::Proces(std::string directory_, int mainPipeSize_, int pipeSize_) :
         nextId(-1), mainFd(0), readFd(0), writeFd(0),
         directory(std::move(directory_)), processId(0),

@@ -65,19 +65,26 @@ int main() {
 
         tokens = splitBySpace(input);
 
+        if (tokens.empty()) continue;
         if (tokens[0] == "input") {
             if (tokens.size() < 2) {
                 std::cout << "Incorrect command" << std::endl;
+                continue;
             }
             std::cout << "trying to get a tuple..." << std::endl;
             Tuple tuple = linda::input_linda(tokens[1], 30);
         } else if (tokens[0] == "read") {
             if(tokens.size() < 2) {
                 std::cout<<"Incorrect command"<<std::endl;
+                continue;
             }
             std::cout << "trying to get a tuple..." << std::endl;
             Tuple tuple = linda::read_linda(tokens[1], 30);
         } else if (tokens[0] == "output") {
+            if(tokens.size() < 2) {
+                std::cout<<"Incorrect command"<<std::endl;
+                continue;
+            }
             if(tokens[1] == "1")
                 linda::output_linda(Tuple(1, 2, 3));
             else if(tokens[1] == "2")

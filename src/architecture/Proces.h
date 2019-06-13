@@ -66,6 +66,7 @@ class Proces: public Thread {
     void handleNotAcceptTuple(protocol::control_data& request);
     void handleGiveTuple(protocol::control_data& request);
     void handleRequestConn(protocol::control_data request);
+    void handleDeleteRequest(protocol::control_data request);
 
     // metody do wysyłania zapytań do innych procesów
     void sendOwnTuple(int destId, int serialNumber);
@@ -73,6 +74,7 @@ class Proces: public Thread {
     void sendNotAcceptTuple(int destId, int serialNumber);
     void sendGiveTuple(int destId, int serialNumber,  Tuple &tuple);
     void sendRequestConn(int destId, int newId);   // prośba o połączenie się z daną kolejką
+    void sendDeleteRequest(int destId, int serialNumber);
 
     // metoda do przekazywania dalej wiadomości
     void forwardMessage(protocol::control_data& request);
@@ -99,6 +101,7 @@ public:
 
     void refreshRequests();
     bool findRequest(int serialNumber);
+    void deleteRequest(int serialNumber);
     std::pair<std::string, std::pair<int, long long>> getRequest(int srNum) { return requests.find(srNum)->second; }
 
     void writeMainPipe(const std::vector<int> &new_structure); // zapisuje nowy wektor id procesów do głównej kolejki

@@ -29,6 +29,8 @@ void ProcessInterface::manageInput() {
             }
             std::cout << "trying to get a tuple..." << std::endl;
             Tuple tuple = linda::input_linda(tokens[1], 30);
+            std::cout << "received tuple" << std::endl;
+            tuple.print();
         }
         else if(tokens[0] == "read") {
             if(tokens.size() < 2) {
@@ -37,6 +39,8 @@ void ProcessInterface::manageInput() {
             }
             std::cout << "trying to get a tuple..." << std::endl;
             Tuple tuple = linda::read_linda(tokens[1], 30);
+            std::cout << "received tuple" << std::endl;
+            tuple.print();
         }
         else if(tokens[0] == "output") {
             if(tokens.size() < 2) {
@@ -312,6 +316,9 @@ void Proces::handleRequests() {
             case 5:
                 handleNotAcceptTuple(request);
                 break;
+            case 6:
+                handleDeleteRequest(request);
+                break;
             default:
                 quitFlag = true;
                 break;
@@ -407,12 +414,24 @@ void Proces::handleGiveTuple(protocol::control_data &request) {
         // usunięcie krotki z requestów,
         // wypisanie krotki użytkownikowi?
         removeRequest(serialNumber);
-        std::cout << "got tuple ";
-        tuple1.print();
+        sendDeleteRequest(request.id_sender, serialNumber);
+//        std::cout << "got tuple ";
+//        tuple1.print();
         tupleReady(tuple1);
     } else
         forwardMessage(request);
 }
+
+
+void Proces::handleDeleteRequest(protocol::control_data request) {
+        if (request.id_sender != processId) {
+            int serialNumber = request.read_int();
+            removeRequest(serialNumber);
+            request.write_int(serialNumber);
+            forwardMessage(request);
+        }
+}
+
 
 void Proces::handleRequestConn(protocol::control_data request) {
     int destId = request.read_int();
@@ -593,6 +612,16 @@ void Proces::sendGiveTuple(int destId, int serialNumber, Tuple &tuple_) {
     // w przeciwnym wypadku, gdy numer jest parzysty, proces chce ją tylko przeczytać, a więc jej nie usuwamy
 }
 
+
+void Proces::sendDeleteRequest(int destId, int serialNumber) {
+    protocol::control_data request(6);
+    request.id_sender = processId;
+    request.id_recipient = -1;
+    request.write_int(serialNumber);
+    request.send_msg(writeFd);
+}
+
+
 void Proces::forwardMessage(protocol::control_data &request) {
     request.send_msg(writeFd);
 }
@@ -609,6 +638,10 @@ bool Proces::findRequest(int serialNumber) {
     auto request = requests.find(serialNumber);
     return request != requests.end();
 }
+
+void Proces::deleteRequest(int serialNumber) {
+    requests.erase(requests.find(serialNumber));
+};
 
 Tuple Proces::readTupleFromRequest(int number, const std::string &tupleType, protocol::control_data &data) {
     Tuple tuple;
@@ -642,7 +675,9 @@ void Proces::addRequest(const std::string &request, int idSender, int serialNumb
 
 void Proces::removeRequest(int serialNumber) {
     auto it = requests.find(serialNumber);
-    requests.erase(it);
+    if (it != requests.end()) {
+        requests.erase(it);
+    }
 }
 
 void Proces::displayRequests() {

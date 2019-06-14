@@ -48,7 +48,6 @@ class Proces: public Thread {
     std::string mainPipePath;
     protocol::manager manager;
 
-    //std::vector<std::string> requests; // TODO: przechowywanie requestów
     std::map<int, std::pair<std::string, std::pair<int, long long>>> requests;
 
     pthread_mutex_t mutex;
@@ -127,4 +126,4 @@ public:
     const char* what() const noexcept override { return info.c_str(); }
 };
 
-#endif //UXP1A_PROCES_H
+#endif

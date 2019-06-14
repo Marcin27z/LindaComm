@@ -29,4 +29,4 @@ public:
 };
 
 
-#endif //SERVER_THREAD_H
+#endif

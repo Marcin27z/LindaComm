@@ -11,4 +11,4 @@ enum TupleElementType {
     FLOAT
 };
 
-#endif //UXP1A_TUPLEELEMENTTYPE_H
+#endif

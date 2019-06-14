@@ -57,7 +57,6 @@ public:
 #endif
     }
 
-
 private:
 
 #ifdef _WIN32
@@ -84,14 +83,14 @@ public:
             --waitingCount;
             w.v();
             return true;
-        }//if
+        }
         else
             return false;
     }
 
 private:
     Semaphore w;
-    int waitingCount; //liczba oczekujacych watkow
+    int waitingCount;                 //Liczba oczekujacych watkow
 };
 
 

@@ -32,4 +32,4 @@ public:
     bool operator!=(const TupleElement &rhs) const { return !(rhs == *this); }
 };
 
-#endif //UXP1A_TUPLEELEMENT_H
+#endif

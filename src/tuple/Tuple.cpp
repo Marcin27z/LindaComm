@@ -63,20 +63,19 @@ bool Tuple::matchPattern(std::string pattern) {
             }
         } else if (elements[i].getType() == TupleElementType::FLOAT && result[i]->getType() == Element::Type::FLOAT) {
             if (result[i]->isSpecified()) {
-                auto *fr = (Int_Requirement *) result[i]->getReq();
+                auto *fr = (Float_Requirement *) result[i]->getReq();
                 switch(fr->getType()) {
                     case Requirement::GREATER_THAN:
-                        if (elements[i].getIntValue() <= fr->getValue()) return false;
+                        if (elements[i].getFloatValue() <= fr->getValue()) return false;
                         break;
                     case Requirement::LESS_THAN:
-                        if (elements[i].getIntValue() >= fr->getValue()) return false;
+                        if (elements[i].getFloatValue() >= fr->getValue()) return false;
                         break;
-                    // TODO: case Requirement::EQUAL: ?
                     case Requirement::GREATER_OR_EQUAL:
-                        if (elements[i].getIntValue() < fr->getValue()) return false;
+                        if (elements[i].getFloatValue() < fr->getValue()) return false;
                         break;
                     default:
-                        if (elements[i].getIntValue() > fr->getValue()) return false;
+                        if (elements[i].getFloatValue() > fr->getValue()) return false;
                         break;
                 }
             }

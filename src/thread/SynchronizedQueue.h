@@ -68,4 +68,4 @@ std::queue<T> &SynchronizedQueue<T>::getAll() {
     return valuesToReturn;
 }
 
-#endif //SERVER_SYNCHRONIZEDQUEUE_H
+#endif

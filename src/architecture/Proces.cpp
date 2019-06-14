@@ -70,13 +70,6 @@ void ProcessInterface::manageInput() {
                 }
             }
             linda::output_linda(tuple);
-//            if(tokens[1] == "1")
-//                linda::output_linda(Tuple(1, 2, 3));
-//            else if(tokens[1] == "2")
-//                linda::output_linda(Tuple(1.01f, 13.37f, 9.997f));
-//            else if(tokens[1] == "3")
-//                linda::output_linda(Tuple("tuple", 5, 3.01));
-//            else std::cout<<"Incorrect command"<<std::endl;
         }
         else if(input == "help") {
             std::cout << "HELP" << std::endl;
@@ -409,14 +402,8 @@ void Proces::handleGiveTuple(protocol::control_data &request) {
                 tupleTypeSize); // losowa liczba przydzielana żądaniu, aby wykluczyć hazardy
 
         Tuple tuple1 = readTupleFromRequest(serialNumber, tupleType, request);
-
-        //TODO: tutaj sprawdzenie czy chcieliśmy tę krotkę?
-        // usunięcie krotki z requestów,
-        // wypisanie krotki użytkownikowi?
         removeRequest(serialNumber);
         sendDeleteRequest(request.id_sender, serialNumber);
-//        std::cout << "got tuple ";
-//        tuple1.print();
         tupleReady(tuple1);
     } else
         forwardMessage(request);
@@ -507,11 +494,6 @@ void Proces::tupleReady(Tuple tuple) {
 }
 
 std::pair<bool, Tuple&> Proces::findTupleByPattern(const std::string &tuplePattern) {
-    /*   for(Tuple tuple : tuples) {
-           if (tuple.matchPattern(tuplePattern)) {
-               return tuple;
-           }
-       }*/
     for (auto &&tuple1: outTuples)
         if (tuple1.matchPattern(tuplePattern))
             return {true, tuple1};

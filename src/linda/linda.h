@@ -26,4 +26,4 @@ namespace linda {
     void disconnect();
 }
 
-#endif //LINDA_H
+#endif
